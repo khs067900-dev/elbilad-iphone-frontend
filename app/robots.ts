@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/checkout/verify/"],
       },
     ],
-    sitemap: "https://albiladksa.com/sitemap.xml",
-    host: "https://albiladksa.com",
+    sitemap: "https://www.albiladksa.com/sitemap.xml",
+    host: "https://www.albiladksa.com",
   };
 }

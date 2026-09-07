@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { slugConfigs } from "./lib/categoryConfig";
 
-const BASE_URL = "https://albiladksa.com";
+const BASE_URL = "https://www.albiladksa.com";
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const staticRoutes: { path: string; priority: number; changeFreq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [

@@ -8,7 +8,7 @@ import Footer from "./components/Footer";
 const almarai = Almarai({ subsets: ["arabic"], weight: ["400", "700", "800"], display: "swap" });
 
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
-const SITE_URL = "https://albiladksa.com";
+const SITE_URL = "https://www.albiladksa.com";
 
 async function getCompany() {
   try {

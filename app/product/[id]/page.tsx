@@ -5,7 +5,7 @@ import { getCachedProduct } from "../../lib/products-cache";
 export const revalidate = false;
 
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
-const SITE_URL = "https://albilaad-ksa.com";
+const SITE_URL = "https://www.albiladksa.com";
 
 async function getCompany() {
   try {

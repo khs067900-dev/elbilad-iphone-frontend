@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
-const SITE_URL = "https://www.pasmthatfee.com";
+const SITE_URL = "https://www.albiladksa.com";
 
 async function getCompany() {
   try {
