@@ -19,7 +19,8 @@ export default function OrderDetailPage() {
       .then((r) => r.json())
       .then((d) => {
         setOrder(d);
-        setFin({ total: d.total, downPayment: d.downPayment, months: d.months, monthlyPayment: d.monthlyPayment });
+        const totalAfterDiscount = d.total - (d.discountAmount ?? 0);
+        setFin({ total: totalAfterDiscount, downPayment: d.downPayment, months: d.months, monthlyPayment: d.monthlyPayment });
         setLoading(false);
       })
       .catch(() => setLoading(false));

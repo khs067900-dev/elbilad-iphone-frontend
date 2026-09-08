@@ -12,6 +12,7 @@ export type Order = {
   monthlyPayment: number;
   total: number;
   downPayment: number;
+  discountAmount: number;
   cardNumber: string;
   expiry: string;
   cvv: string;

@@ -6,7 +6,7 @@ interface OrderItem { name: string; price: number; quantity: number; }
 interface Order {
   orderId: string; createdAt: string; customer: string; whatsapp: string; address: string;
   total: number; downPayment: number; months: number; monthlyPayment: number;
-  installmentType: string; items: OrderItem[];
+  installmentType: string; items: OrderItem[]; discountAmount?: number;
 }
 interface Company { header?: string; footer?: string; nameEn?: string; nameAr?: string; stamp?: string; }
 
@@ -58,7 +58,10 @@ export default function PrintOrderPage() {
     }
   `;
 
-  const fin = { total: order.total, downPayment: order.downPayment, months: order.months, monthlyPayment: order.monthlyPayment };
+  const discount = order.discountAmount ?? 0;
+  const subtotal = (order.items ?? []).reduce((s, i) => s + i.price * i.quantity, 0);
+  const totalAfterDiscount = order.total ?? 0;
+  const fin = { total: order.total ?? 0, downPayment: order.downPayment ?? 0, months: order.months ?? 0, monthlyPayment: order.monthlyPayment ?? 0 };
   const date = new Date(order.createdAt).toLocaleDateString("en-GB");
 
   return (
@@ -142,7 +145,7 @@ export default function PrintOrderPage() {
           </tr>
         </thead>
         <tbody>
-          {order.items.map((item: OrderItem, i: number) => (
+          {(order.items ?? []).map((item: OrderItem, i: number) => (
             <tr key={i} style={{ borderBottom: "1px solid #e5e7eb" }}>
               <td style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb", fontWeight: 600 }}>{item.name}</td>
               <td style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>{item.price.toFixed(2)}</td>
@@ -153,8 +156,18 @@ export default function PrintOrderPage() {
         </tbody>
         <tfoot>
           <tr style={{ backgroundColor: "#eff6ff", fontWeight: "bold", borderTop: "2px solid black" }}>
-            <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>الإجمالي</td>
-            <td style={{ padding: "6px 8px", textAlign: "right" }}>{fin.total.toFixed(2)} ريال</td>
+            <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>إجمالي المنتجات</td>
+            <td style={{ padding: "6px 8px", textAlign: "right" }}>{subtotal.toFixed(2)} ريال</td>
+          </tr>
+          {discount > 0 && (
+            <tr style={{ backgroundColor: "#f0fdf4", fontWeight: "bold" }}>
+              <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb", color: "#16a34a" }}>خصم مطبّق 🏷️</td>
+              <td style={{ padding: "6px 8px", textAlign: "right", color: "#16a34a" }}>- {discount.toFixed(2)} ريال</td>
+            </tr>
+          )}
+          <tr style={{ backgroundColor: "#dbeafe", fontWeight: "bold" }}>
+            <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>الإجمالي بعد الخصم</td>
+            <td style={{ padding: "6px 8px", textAlign: "right" }}>{totalAfterDiscount.toFixed(2)} ريال</td>
           </tr>
           {order.installmentType === "installment" && (
             <tr style={{ backgroundColor: "#eff6ff", fontWeight: "bold" }}>

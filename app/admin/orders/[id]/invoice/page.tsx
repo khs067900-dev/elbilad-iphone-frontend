@@ -7,7 +7,7 @@ interface Order {
   orderId: string; createdAt: string; customer: string; whatsapp: string;
   address: string; nationalId: string; total: number; downPayment: number;
   months: number; monthlyPayment: number; installmentType: string;
-  items: OrderItem[]; status: string; cardNumber: string;
+  items: OrderItem[]; status: string; cardNumber: string; discountAmount?: number;
 }
 interface Company {
   header?: string; footer?: string; stamp?: string; nameAr?: string; nameEn?: string;
@@ -81,7 +81,10 @@ export default function InvoicePrintPage() {
   if (!order) return <div style={{ textAlign: "center", padding: 40, fontFamily: "Arial" }}>جاري التحميل...</div>;
 
   const currency = company.currencyAr || "ر.س";
-  const remaining = order.total - order.downPayment;
+  const discount = order.discountAmount ?? 0;
+  const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const totalAfterDiscount = order.total;
+  const remaining = totalAfterDiscount - order.downPayment;
 
   return (
     <div style={{ fontFamily: "Arial, sans-serif", padding: 24, maxWidth: 900, margin: "0 auto", direction: "rtl", position: "relative", backgroundColor: "#fff", minHeight: "100vh" }}>
@@ -153,7 +156,8 @@ export default function InvoicePrintPage() {
           <div style={sectionTitle("#f59e0b")}>تفاصيل الدفع:</div>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <tbody>
-              {infoRow("المبلغ", `${order.total.toFixed(2)} ${currency}`)}
+              {infoRow("المبلغ", `${totalAfterDiscount.toFixed(2)} ${currency}`)}
+              {discount > 0 && infoRow("خصم مطبّق", `- ${discount.toFixed(2)} ${currency}`)}
               {order.installmentType === "installment" && infoRow("الدفعة الأولى", `${order.downPayment.toFixed(2)} ${currency}`)}
               {order.installmentType === "installment" && infoRow("الأقساط", `${order.months} شهر`)}
               {infoRow("طريقة الدفع", company.paymentMethod || (order.cardNumber ? "بطاقة بنكية" : "—"))}
@@ -202,8 +206,18 @@ export default function InvoicePrintPage() {
         </tbody>
         <tfoot>
           <tr style={{ backgroundColor: "#eff6ff", fontWeight: "bold", borderTop: "2px solid #3b82f6" }}>
-            <td colSpan={4} style={{ ...td("#eff6ff"), fontWeight: "bold" }}>إجمالي الطلب</td>
-            <td style={{ ...td("#eff6ff"), fontWeight: "bold" }}>{order.total.toFixed(2)} {currency}</td>
+            <td colSpan={4} style={{ ...td("#eff6ff"), fontWeight: "bold" }}>إجمالي المنتجات</td>
+            <td style={{ ...td("#eff6ff"), fontWeight: "bold" }}>{subtotal.toFixed(2)} {currency}</td>
+          </tr>
+          {discount > 0 && (
+            <tr>
+              <td colSpan={4} style={{ ...td("#f0fdf4"), fontWeight: "bold", color: "#16a34a" }}>خصم مطبّق 🏷️</td>
+              <td style={{ ...td("#f0fdf4"), fontWeight: "bold", color: "#16a34a" }}>- {discount.toFixed(2)} {currency}</td>
+            </tr>
+          )}
+          <tr style={{ backgroundColor: "#dbeafe", fontWeight: "bold" }}>
+            <td colSpan={4} style={{ ...td("#dbeafe"), fontWeight: "bold" }}>إجمالي الطلب</td>
+            <td style={{ ...td("#dbeafe"), fontWeight: "bold" }}>{totalAfterDiscount.toFixed(2)} {currency}</td>
           </tr>
           {order.installmentType === "installment" && (
             <>

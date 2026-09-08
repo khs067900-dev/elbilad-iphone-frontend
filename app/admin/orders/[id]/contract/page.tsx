@@ -27,7 +27,7 @@ interface OrderItem { name: string; price: number; quantity: number; }
 interface Order {
   orderId: string; createdAt: string; customer: string; whatsapp: string; address: string;
   total: number; downPayment: number; months: number; monthlyPayment: number;
-  installmentType: string; items: OrderItem[];
+  installmentType: string; items: OrderItem[]; discountAmount?: number;
 }
 interface Company { header?: string; footer?: string; nameAr?: string; currencyAr?: string; phone?: string; stamp?: string; }
 
@@ -52,7 +52,9 @@ export default function ContractPage() {
 
   const { order, company } = data;
   const currency = company.currencyAr || "ريال";
-  const remaining = order.total - (order.downPayment || 0);
+  const discount = order.discountAmount ?? 0;
+  const totalAfterDiscount = order.total - discount;
+  const remaining = totalAfterDiscount - (order.downPayment || 0);
   const monthly = order.monthlyPayment || (order.months > 0 ? Math.ceil(remaining / order.months) : remaining);
   const productNames = order.items.map((i) => i.name).join("، ");
 
@@ -100,6 +102,8 @@ export default function ContractPage() {
               أُقر وأعترف وأنا في حالتي الشرعية وبكامل قواي العقلية بأني في ذمتي للمؤسسة المدعوة :/ <strong>{company.nameAr}</strong>
               <br />
               مبلغ وقدره :/ <strong>{remaining.toLocaleString("ar-SA")} ( {toArabicWords(remaining)} ) {currency} فقط.</strong>
+              <br />
+              {discount > 0 && (<>وذلك بعد تطبيق خصم قدره :/ <strong>{discount.toLocaleString("ar-SA")} ( {toArabicWords(discount)} ) {currency}</strong><br /></>)}
               <br />
               وذلك قيمة عن ما تبقى من ثمن جهاز/أجهزة :/ <strong>{productNames}</strong>
               <br />

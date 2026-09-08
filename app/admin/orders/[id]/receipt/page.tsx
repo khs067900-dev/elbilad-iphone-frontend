@@ -25,7 +25,7 @@ function toArabicWords(n: number): string {
 
 interface OrderItem { name: string; }
 interface ReceiptData {
-  order: { orderId: string; installmentType: string; downPayment: number; total: number; customer: string; whatsapp: string; address: string; items: OrderItem[]; };
+  order: { orderId: string; installmentType: string; downPayment: number; total: number; customer: string; whatsapp: string; address: string; items: OrderItem[]; discountAmount?: number; };
   company: { currencyAr?: string; header?: string; footer?: string; stamp?: string; };
 }
 
@@ -47,6 +47,7 @@ export default function ReceiptPrintPage() {
 
   const { order, company } = data;
   const currency = company.currencyAr || "ريال";
+  const discount = order.discountAmount ?? 0;
   const amount = order.installmentType === "installment" ? order.downPayment : order.total;
   const amountWords = toArabicWords(amount) + " فقط لا غير";
   const aboutPrefix = `قيمة ${order.installmentType === "installment" ? "دفعة من " : ""}ثمن جهاز/أجهزة:`;
@@ -101,6 +102,12 @@ export default function ReceiptPrintPage() {
                 <td className="receipt-value">{amount}</td>
                 <td className="receipt-value">{currency}</td>
               </tr>
+              {discount > 0 && (
+                <tr>
+                  <td className="receipt-label">خصم مطبّق</td>
+                  <td colSpan={2} className="receipt-value" style={{ color: "#16a34a", fontWeight: "bold" }}>- {discount} {currency}</td>
+                </tr>
+              )}
               <tr>
                 <td className="receipt-label">استلمت من السيد</td>
                 <td colSpan={2} className="receipt-value">{order.customer}</td>
