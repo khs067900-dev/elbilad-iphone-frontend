@@ -37,7 +37,7 @@ export default function PrintOrderPage() {
     thead { display: table-header-group; }
     tfoot { display: table-row-group; }
     .print-two-col td { width: 50%; }
-    .installments-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+    .installments-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
     .table-scroll { overflow-x: auto; }
     @media (max-width: 600px) {
       .print-two-col { display: block; }
@@ -51,8 +51,10 @@ export default function PrintOrderPage() {
       body { font-size: 9px !important; }
       td, th { padding: 2px 4px !important; }
       img[alt="header"] { width: 100% !important; height: auto !important; object-fit: cover !important; display: block !important; }
-      img[alt="footer"] { width: 100% !important; height: auto !important; max-height: 90px !important; object-fit: contain; }
-      .installments-section { margin-top: 8px !important; }
+      img[alt="footer"] { width: 100% !important; height: auto !important; display: block !important; }
+      .installments-section { margin-top: 4px !important; padding: 4px !important; }
+      .installments-grid th, .installments-grid td { padding: 1px 3px !important; font-size: 8px !important; }
+      .installments-grid table { margin-bottom: 0 !important; }
       p { margin: 0 !important; line-height: 1.4 !important; }
       table { margin-bottom: 6px !important; }
     }
@@ -213,26 +215,26 @@ export default function PrintOrderPage() {
           return { num: i + 1, amount: fin.monthlyPayment, date: d.toLocaleDateString("en-GB") };
         });
         const chunks: typeof installments[] = [];
-        for (let i = 0; i < installments.length; i += 6) chunks.push(installments.slice(i, i + 6));
+        for (let i = 0; i < installments.length; i += 8) chunks.push(installments.slice(i, i + 8));
         const remaining = (fin.total - fin.downPayment).toFixed(2);
         return (
-          <div className="installments-section" style={{ border: "2px solid #9ca3af", borderRadius: 8, padding: 12, backgroundColor: "#f3f4f6", marginTop: 16 }}>
+          <div className="installments-section" style={{ border: "1px solid #9ca3af", borderRadius: 4, padding: 6, backgroundColor: "#f3f4f6", marginTop: 8 }}>
             <div className="installments-grid">
               {chunks.map((chunk, ci) => (
-                <table key={ci} style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #d1d5db", fontSize: 13 }}>
+                <table key={ci} style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #d1d5db", fontSize: 11 }}>
                   <thead>
                     <tr style={{ backgroundColor: "#3b82f6", color: "white" }}>
-                      <th style={{ padding: "6px 8px", textAlign: "center", borderLeft: "1px solid #60a5fa" }}># الدفعة</th>
-                      <th style={{ padding: "6px 8px", textAlign: "center", borderLeft: "1px solid #60a5fa" }}>المبلغ</th>
-                      <th style={{ padding: "6px 8px", textAlign: "center" }}>تاريخ الاستحقاق</th>
+                      <th style={{ padding: "3px 4px", textAlign: "center", borderLeft: "1px solid #60a5fa" }}>#</th>
+                      <th style={{ padding: "3px 4px", textAlign: "center", borderLeft: "1px solid #60a5fa" }}>المبلغ</th>
+                      <th style={{ padding: "3px 4px", textAlign: "center" }}>التاريخ</th>
                     </tr>
                   </thead>
                   <tbody>
                     {chunk.map((inst) => (
                       <tr key={inst.num} style={{ backgroundColor: "white", borderBottom: "1px solid #e5e7eb" }}>
-                        <td style={{ padding: "6px 8px", textAlign: "center", borderLeft: "1px solid #e5e7eb", fontWeight: 600 }}>{inst.num}</td>
-                        <td style={{ padding: "6px 8px", textAlign: "center", borderLeft: "1px solid #e5e7eb" }}>{inst.amount.toFixed(2)}</td>
-                        <td style={{ padding: "6px 8px", textAlign: "center", direction: "ltr" }}>{inst.date}</td>
+                        <td style={{ padding: "2px 4px", textAlign: "center", borderLeft: "1px solid #e5e7eb", fontWeight: 600 }}>{inst.num}</td>
+                        <td style={{ padding: "2px 4px", textAlign: "center", borderLeft: "1px solid #e5e7eb" }}>{inst.amount.toFixed(2)}</td>
+                        <td style={{ padding: "2px 4px", textAlign: "center", direction: "ltr" }}>{inst.date}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -244,7 +246,7 @@ export default function PrintOrderPage() {
         );
       })()}
       {company.footer && (
-        <img src={company.footer} alt="footer" style={{ width: "100%", marginTop: 24 }} />
+        <img src={company.footer} alt="footer" style={{ width: "100%", display: "block", marginTop: 24 }} />
       )}
     </div>
   );
