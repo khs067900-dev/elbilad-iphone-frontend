@@ -9,7 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p $PORT",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "jest"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
@@ -41,6 +42,7 @@
     "jest-environment-jsdom": "^30.5.1",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.12",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

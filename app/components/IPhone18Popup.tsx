@@ -26,14 +26,13 @@ export default function IPhone18Popup() {
   }, []);
 
   useEffect(() => {
-    if (!sessionStorage.getItem("popup_shown")) {
-      const t = setTimeout(() => {
-        sessionStorage.setItem("popup_shown", "true");
-        setVisible(true);
-        setTimeout(() => setShow(true), 20);
-      }, 700);
-      return () => clearTimeout(t);
-    }
+    if (sessionStorage.getItem("popup_shown")) return;
+    const t = setTimeout(() => {
+      setVisible(true);
+      sessionStorage.setItem("popup_shown", "true");
+      setTimeout(() => setShow(true), 20);
+    }, 700);
+    return () => clearTimeout(t);
   }, []);
 
   function close() {
