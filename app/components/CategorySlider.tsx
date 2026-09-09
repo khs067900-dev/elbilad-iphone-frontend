@@ -90,7 +90,7 @@ export default function CategorySlider({ categories }: { categories: Category[] 
                     fill
                     unoptimized
                     className={`transition-transform duration-500 group-hover:scale-105 ${
-                      cat.comingSoon ? "object-contain object-center scale-125" : "object-cover object-center"
+                      cat.comingSoon ? "object-contain object-center scale-135" : "object-cover object-center scale-90"
                     }`}
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
