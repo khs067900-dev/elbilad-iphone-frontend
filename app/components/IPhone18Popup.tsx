@@ -18,8 +18,9 @@ function getTimeLeft() {
 export default function IPhone18Popup() {
   const [visible, setVisible] = useState(false);
   const [show, setShow]       = useState(false);
-  const [time, setTime]       = useState(getTimeLeft);
+  const [time, setTime]       = useState({ d: 0, h: 0, m: 0, s: 0 });
   useEffect(() => {
+    setTime(getTimeLeft());
     const id = setInterval(() => setTime(getTimeLeft()), 1000);
     return () => clearInterval(id);
   }, []);
