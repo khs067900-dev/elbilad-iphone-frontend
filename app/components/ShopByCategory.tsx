@@ -29,6 +29,10 @@ function resolveHref(catName: string): string {
 type Category = { name: string; count: number; image: string };
 type Setting = { category: string; subCategory: string; showInHome: boolean; order: number };
 
+const COMING_SOON_CARDS = [
+  { name: "ايفون 18", count: 0, image: "/8435e6ba-7c1d-4fc7-98fa-0193c4db8529.jpg", href: "/smartphones/iphone-18", comingSoon: true },
+];
+
 async function getCategories(): Promise<Category[]> {
   try {
     const [catRes, settingsRes] = await Promise.all([
@@ -59,10 +63,13 @@ export default async function ShopByCategory() {
   const categories = await getCategories();
   if (!categories.length) return null;
 
-  const categoriesWithHref = categories.map((cat) => ({
-    ...cat,
-    href: resolveHref(cat.name),
-  }));
+  const categoriesWithHref = [
+    ...COMING_SOON_CARDS,
+    ...categories.map((cat) => ({
+      ...cat,
+      href: resolveHref(cat.name),
+    })),
+  ];
 
   return (
     <div className="w-full" dir="rtl">

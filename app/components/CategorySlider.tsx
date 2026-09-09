@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const SWIPE_THRESHOLD = 50;
 
 const CATEGORY_DESC: Record<string, string> = {
+  "ايفون 18": "استعد للجيل الجديد كلياً",
   "ابل ايفون 17 برو ماكس": "أقوى ايفون على الإطلاق",
   "ابل ايفون 17 برو": "أداء احترافي بتصميم أنيق",
   "ابل ايفون 17 اير": "رفيع وخفيف بقوة استثنائية",
@@ -35,7 +36,7 @@ function getCategoryDesc(name: string): string {
   return CATEGORY_DESC[name.trim()] ?? "تسوق أفضل المنتجات";
 }
 
-type Category = { name: string; count: number; image: string; href: string };
+type Category = { name: string; count: number; image: string; href: string; comingSoon?: boolean };
 
 export default function CategorySlider({ categories }: { categories: Category[] }) {
   const [current, setCurrent] = useState(0);
@@ -80,7 +81,7 @@ export default function CategorySlider({ categories }: { categories: Category[] 
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-3">
           {groups[current].map((cat) => (
             <Link key={cat.name} href={cat.href} className="group block">
-              <div className="relative rounded-lg overflow-hidden bg-gray-200 aspect-[3/4] sm:aspect-[4/5]">
+              <div className="relative rounded-lg overflow-hidden bg-white aspect-[3/4] sm:aspect-[4/5]">
                 {/* Image */}
                 {cat.image ? (
                   <Image
@@ -88,7 +89,9 @@ export default function CategorySlider({ categories }: { categories: Category[] 
                     alt={cat.name}
                     fill
                     unoptimized
-                    className="object-cover object-center transition-transform duration-500 group-hover:scale-105 scale-90"
+                    className={`transition-transform duration-500 group-hover:scale-105 ${
+                      cat.comingSoon ? "object-contain object-center scale-125" : "object-cover object-center"
+                    }`}
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                 ) : (
@@ -96,20 +99,42 @@ export default function CategorySlider({ categories }: { categories: Category[] 
                 )}
 
                 {/* Dark overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <div className={`absolute inset-0 ${
+                  cat.comingSoon
+                    ? "bg-gradient-to-t from-black/90 via-black/30 to-black/10"
+                    : "bg-gradient-to-t from-black/75 via-black/10 to-transparent"
+                }`} />
+
+                {/* Coming Soon Badge */}
+                {cat.comingSoon && (
+                  <div className="absolute top-2 right-2 bg-[#6DBE00] text-white text-[9px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full shadow">
+                    قريباً
+                  </div>
+                )}
 
                 {/* Content */}
-                <div className="absolute bottom-0 inset-x-0 p-1.5 sm:p-3">
-                  <h3 className="text-white font-bold text-[10px] sm:text-sm leading-tight">
-                    {cat.name}
-                  </h3>
-                  <p className="text-white/70 text-[9px] sm:text-xs mt-0.5 leading-tight hidden sm:block">
-                    {getCategoryDesc(cat.name)}
-                  </p>
-                  <p className="text-white/50 text-[8px] sm:text-[11px] mt-0.5">
-                    {cat.count} منتج
-                  </p>
-                </div>
+                {cat.comingSoon ? (
+                  <div className="absolute bottom-0 inset-x-0 p-2 sm:p-3">
+                    <h3 className="text-white font-extrabold text-xs sm:text-base leading-tight">
+                      {cat.name}
+                    </h3>
+                    <p className="text-white/90 text-[10px] sm:text-sm mt-1 leading-tight font-medium">
+                      {getCategoryDesc(cat.name)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="absolute bottom-0 inset-x-0 p-1.5 sm:p-3">
+                    <h3 className="text-white font-bold text-[10px] sm:text-sm leading-tight">
+                      {cat.name}
+                    </h3>
+                    <p className="text-white/70 text-[9px] sm:text-xs mt-0.5 leading-tight hidden sm:block">
+                      {getCategoryDesc(cat.name)}
+                    </p>
+                    <p className="text-white/50 text-[8px] sm:text-[11px] mt-0.5">
+                      {cat.count} منتج
+                    </p>
+                  </div>
+                )}
               </div>
             </Link>
           ))}
