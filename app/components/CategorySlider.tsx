@@ -45,7 +45,7 @@ export default function CategorySlider({ categories }: { categories: Category[] 
 
   useEffect(() => {
     const update = () => {
-      if (window.innerWidth < 640) setItemsPerPage(2);
+      if (window.innerWidth < 640) setItemsPerPage(3);
       else if (window.innerWidth < 1024) setItemsPerPage(4);
       else setItemsPerPage(5);
     };
@@ -78,10 +78,10 @@ export default function CategorySlider({ categories }: { categories: Category[] 
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-3">
           {groups[current].map((cat) => (
             <Link key={cat.name} href={cat.href} className="group block">
-              <div className="relative rounded-lg overflow-hidden bg-white aspect-[3/4] sm:aspect-[4/5]">
+              <div className="relative rounded-lg overflow-hidden bg-white aspect-[2/3] sm:aspect-[4/5]">
                 {/* Image */}
                 {cat.image ? (
                   <Image
