@@ -117,9 +117,9 @@ export default function PrintOrderPage() {
       <div className="table-scroll">
       <table style={{ width: "100%", borderCollapse: "collapse", border: "2px solid black", marginBottom: 16, fontSize: 13, minWidth: 400 }}>
         <thead>
-          <tr style={{ backgroundColor: "#3b82f6", color: "white" }}>
-            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #60a5fa" }}>اسم العميل</th>
-            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #60a5fa" }}>رقم الجوال</th>
+          <tr style={{ backgroundColor: "#135471", color: "white" }}>
+            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #135471" }}>اسم العميل</th>
+            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #135471" }}>رقم الجوال</th>
             <th style={{ padding: "6px 8px", textAlign: "right" }}>العنوان</th>
           </tr>
         </thead>
@@ -139,10 +139,10 @@ export default function PrintOrderPage() {
       <div className="table-scroll">
       <table style={{ width: "100%", borderCollapse: "collapse", border: "2px solid black", marginBottom: 16, fontSize: 13, minWidth: 400 }}>
         <thead>
-          <tr style={{ backgroundColor: "#3b82f6", color: "white" }}>
-            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #60a5fa" }}>اسم الجهاز</th>
-            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #60a5fa" }}>السعر</th>
-            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #60a5fa" }}>الكمية</th>
+          <tr style={{ backgroundColor: "#135471", color: "white" }}>
+            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #135471" }}>اسم الجهاز</th>
+            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #135471" }}>السعر</th>
+            <th style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #135471" }}>الكمية</th>
             <th style={{ padding: "6px 8px", textAlign: "right" }}>الإجمالي</th>
           </tr>
         </thead>
@@ -157,7 +157,7 @@ export default function PrintOrderPage() {
           ))}
         </tbody>
         <tfoot>
-          <tr style={{ backgroundColor: "#eff6ff", fontWeight: "bold", borderTop: "2px solid black" }}>
+          <tr style={{ backgroundColor: "#e8f0f4", fontWeight: "bold", borderTop: "2px solid black" }}>
             <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>إجمالي المنتجات</td>
             <td style={{ padding: "6px 8px", textAlign: "right" }}>{subtotal.toFixed(2)} ريال</td>
           </tr>
@@ -167,18 +167,18 @@ export default function PrintOrderPage() {
               <td style={{ padding: "6px 8px", textAlign: "right", color: "#16a34a" }}>- {discount.toFixed(2)} ريال</td>
             </tr>
           )}
-          <tr style={{ backgroundColor: "#dbeafe", fontWeight: "bold" }}>
+          <tr style={{ backgroundColor: "#c8dde6", fontWeight: "bold" }}>
             <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>الإجمالي بعد الخصم</td>
             <td style={{ padding: "6px 8px", textAlign: "right" }}>{totalAfterDiscount.toFixed(2)} ريال</td>
           </tr>
           {order.installmentType === "installment" && (
-            <tr style={{ backgroundColor: "#eff6ff", fontWeight: "bold" }}>
+            <tr style={{ backgroundColor: "#e8f0f4", fontWeight: "bold" }}>
               <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>الدفعة المقدمة</td>
               <td style={{ padding: "6px 8px", textAlign: "right" }}>{fin.downPayment.toFixed(2)} ريال</td>
             </tr>
           )}
           {order.installmentType === "installment" && (
-            <tr style={{ backgroundColor: "#dbeafe", fontWeight: "bold" }}>
+            <tr style={{ backgroundColor: "#c8dde6", fontWeight: "bold" }}>
               <td colSpan={3} style={{ padding: "6px 8px", textAlign: "right", borderLeft: "1px solid #e5e7eb" }}>المتبقي</td>
               <td style={{ padding: "6px 8px", textAlign: "right" }}>{(fin.total - fin.downPayment).toFixed(2)} ريال</td>
             </tr>
@@ -223,9 +223,9 @@ export default function PrintOrderPage() {
               {chunks.map((chunk, ci) => (
                 <table key={ci} style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #d1d5db", fontSize: 11 }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#3b82f6", color: "white" }}>
-                      <th style={{ padding: "3px 4px", textAlign: "center", borderLeft: "1px solid #60a5fa" }}>#</th>
-                      <th style={{ padding: "3px 4px", textAlign: "center", borderLeft: "1px solid #60a5fa" }}>المبلغ</th>
+                    <tr style={{ backgroundColor: "#135471", color: "white" }}>
+                      <th style={{ padding: "3px 4px", textAlign: "center", borderLeft: "1px solid #135471" }}>#</th>
+                      <th style={{ padding: "3px 4px", textAlign: "center", borderLeft: "1px solid #135471" }}>المبلغ</th>
                       <th style={{ padding: "3px 4px", textAlign: "center" }}>التاريخ</th>
                     </tr>
                   </thead>
