@@ -38,7 +38,7 @@ export default function CartPage() {
       fetch(`/api/admin/product-down-payments/public?categories=${encodeURIComponent(categories)}`).then((r) => r.json()).catch(() => ({})),
     ]).then(([globalData, catData]) => {
       // لو كل المنتجات من نفس الكاتيجوري وعندها دفعات مخصصة، استخدمها
-      const uniqueCategories = [...new Set(items.map((i) => i.product.category).filter(Boolean))];
+      const uniqueCategories = [...new Set(items.map((i) => i.product.category).filter((c): c is string => Boolean(c)))];
       const allSameCategory = uniqueCategories.length === 1 && catData[uniqueCategories[0]]?.length > 0;
       if (allSameCategory) {
         setDownPaymentAmounts(catData[uniqueCategories[0]]);

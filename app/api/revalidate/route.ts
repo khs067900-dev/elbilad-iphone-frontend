@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   }
   const tag = req.nextUrl.searchParams.get("tag") || "products";
-  revalidateTag(tag);
+  revalidateTag(tag, "max");
   // Cascade revalidation for related tags
   if (tag === "home-settings") {
     revalidatePath("/");
