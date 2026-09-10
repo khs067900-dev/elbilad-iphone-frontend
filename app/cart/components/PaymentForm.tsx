@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CreditCard, ChevronDown, Calendar, Wallet, CheckCircle2, ArrowRight, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -16,28 +16,34 @@ interface Props {
   itemCount: number;
   initialData?: Partial<CustomerInfo>;
   installmentMonths?: number;
+  downPaymentAmounts?: number[];
   onBack: () => void;
   onSubmit: (info: CustomerInfo) => void;
 }
 
-export default function PaymentForm({ total, itemCount, initialData, installmentMonths, onBack, onSubmit }: Props) {
+export default function PaymentForm({ total, itemCount, initialData, installmentMonths, downPaymentAmounts, onBack, onSubmit }: Props) {
   const { pendingDiscountCode } = useCartStore();
 
   const maxMonths = installmentMonths ?? 24;
   const MONTHS_OPTIONS = Array.from({ length: Math.floor(maxMonths / 2) }, (_, i) => (i + 1) * 2);
 
-  const minDown = 500 * itemCount;
-  const DOWN_OPTIONS = [
-    { label: "500 ر.س", amount: 500 },
-    { label: "1,000 ر.س", amount: 1000 },
-    { label: "1,500 ر.س", amount: 1500 },
-  ];
+  const rawAmounts = downPaymentAmounts && downPaymentAmounts.length > 0 ? downPaymentAmounts : [1000, 1500, 2000];
+  const DOWN_OPTIONS = rawAmounts.map((amount) => ({
+    label: amount.toLocaleString("en-US") + " ر.س",
+    amount,
+  }));
 
   const [installmentType, setInstallmentType] = useState<"full" | "installment">(initialData?.installmentType ?? "installment");
   const [installmentProvider, setInstallmentProvider] = useState<"tabby" | "tamara" | "store">("store");
   const [months, setMonths] = useState(initialData?.months ?? 12);
   const [downPayment, setDownPayment] = useState(DOWN_OPTIONS[0].amount);
+
+  useEffect(() => {
+    setDownPayment(DOWN_OPTIONS[0].amount);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [downPaymentAmounts]);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // Discount
   const [discountCode, setDiscountCode] = useState(initialData?.discountCode ?? pendingDiscountCode ?? "");
@@ -47,11 +53,18 @@ export default function PaymentForm({ total, itemCount, initialData, installment
   const discountAmount = discountApplied ? DISCOUNT_VALUE : 0;
   const finalTotal = total - discountAmount;
 
+  const availableDownOptions = DOWN_OPTIONS.filter((opt) => opt.amount < finalTotal);
+
+  // Auto-reset downPayment if it's no longer valid after discount
+  const effectiveDownPayment = availableDownOptions.find((o) => o.amount === downPayment)
+    ? downPayment
+    : availableDownOptions[0]?.amount ?? 0;
+
   const monthly = useMemo(() => {
     if (installmentType === "full") return 0;
-    const rem = finalTotal - downPayment;
+    const rem = finalTotal - effectiveDownPayment;
     return rem > 0 ? Math.ceil(rem / months) : 0;
-  }, [finalTotal, months, installmentType, downPayment]);
+  }, [finalTotal, months, installmentType, effectiveDownPayment]);
 
   const schedule = useMemo(() => {
     const now = new Date();
@@ -89,6 +102,17 @@ export default function PaymentForm({ total, itemCount, initialData, installment
   }
 
   const handleSubmit = () => {
+    if (installmentType === "installment") {
+      if (availableDownOptions.length === 0) {
+        setSubmitError("إجمالي الطلب أقل من الحد الأدنى للدفعة الأولى");
+        return;
+      }
+      if (effectiveDownPayment >= finalTotal) {
+        setSubmitError("الدفعة الأولى يجب أن تكون أقل من إجمالي الطلب");
+        return;
+      }
+    }
+    setSubmitError("");
     onSubmit({
       name: initialData?.name ?? "",
       nationalId: initialData?.nationalId ?? "",
@@ -98,7 +122,7 @@ export default function PaymentForm({ total, itemCount, initialData, installment
       installmentProvider: installmentType === "installment" ? installmentProvider : undefined,
       storeInstallment: installmentType === "installment" && installmentProvider === "store",
       months,
-      downPayment,
+      downPayment: effectiveDownPayment,
       discountCode: discountApplied ? discountCode : undefined,
       discountAmount: discountApplied ? discountAmount : undefined,
     });
@@ -214,29 +238,38 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                       <Wallet size={12} className="text-[#1a6b7d]" />
                       الدفعة الأولى
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {DOWN_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.amount}
-                          type="button"
-                          onClick={() => setDownPayment(opt.amount)}
-                          className={`relative py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
-                            downPayment === opt.amount
-                              ? "border-[#7CC043] bg-[#7CC043]/8 shadow-sm"
-                              : "border-gray-200 hover:border-[#7CC043]/40 bg-white"
-                          }`}
-                        >
-                          {downPayment === opt.amount && (
-                            <span className="absolute top-1.5 left-1.5">
-                              <CheckCircle2 size={12} className="text-[#7CC043]" />
-                            </span>
-                          )}
-                          <p className={`text-xs font-extrabold ${downPayment === opt.amount ? "text-[#3b6a00]" : "text-gray-700"}`}>
-                            {opt.label}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
+                    {availableDownOptions.length === 0 ? (
+                      <p className="text-red-400 text-xs bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                        إجمالي الطلب أقل من الحد الأدنى للدفعة الأولى (1,000 ر.س)
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {availableDownOptions.map((opt) => {
+                          const selected = effectiveDownPayment === opt.amount;
+                          return (
+                            <button
+                              key={opt.amount}
+                              type="button"
+                              onClick={() => { setDownPayment(opt.amount); setSubmitError(""); }}
+                              className={`relative py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
+                                selected
+                                  ? "border-[#7CC043] bg-[#7CC043]/8 shadow-sm"
+                                  : "border-gray-200 hover:border-[#7CC043]/40 bg-white"
+                              }`}
+                            >
+                              {selected && (
+                                <span className="absolute top-1.5 left-1.5">
+                                  <CheckCircle2 size={12} className="text-[#7CC043]" />
+                                </span>
+                              )}
+                              <p className={`text-xs font-extrabold ${selected ? "text-[#3b6a00]" : "text-gray-700"}`}>
+                                {opt.label}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Monthly summary */}
@@ -361,6 +394,9 @@ export default function PaymentForm({ total, itemCount, initialData, installment
         </div>
       </div>
 
+      {submitError && (
+        <p className="text-red-400 text-xs text-center bg-red-50 border border-red-200 rounded-xl px-4 py-3">{submitError}</p>
+      )}
       <button
         onClick={handleSubmit}
         className="w-full py-4 bg-gradient-to-bl from-[#1a6b7d] to-[#155e6f] text-white rounded-xl font-extrabold text-base shadow-lg shadow-[#1a6b7d]/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"

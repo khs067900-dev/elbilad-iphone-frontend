@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, ReactNode } from "react";
 import ContactSection from "../components/ContactSection";
+import { useCompanyStore } from "../store/companyStore";
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -107,16 +108,12 @@ const policies = [
 
 
 
-type Company = { whatsapp?: string; email?: string; phone?: string };
-
 export default function ReturnPolicyClient() {
   const [heroVis, setHeroVis] = useState(false);
-  const [company, setCompany] = useState<Company | null>(null);
+  const { phone, whatsapp, email, fetchCompany } = useCompanyStore();
 
   useEffect(() => { const t = setTimeout(() => setHeroVis(true), 80); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    fetch("/api/admin/company").then(r => r.json()).then(setCompany).catch(() => {});
-  }, []);
+  useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
   const anim = (delay: number): React.CSSProperties => ({
     opacity: heroVis ? 1 : 0,
@@ -255,9 +252,9 @@ export default function ReturnPolicyClient() {
       <section className="w-full max-w-5xl mx-auto px-4 sm:px-8 mt-8 sm:mt-12">
         <ContactSection
           title="التواصل بخصوص الطلبات"
-          phone={company?.phone}
-          whatsapp={company?.whatsapp}
-          email={company?.email}
+          phone={phone}
+          whatsapp={whatsapp}
+          email={email}
           fadeDelay={200}
         />
       </section>

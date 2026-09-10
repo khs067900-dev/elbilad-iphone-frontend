@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBackend } from "../admin/_lib";
 
 export async function GET() {
-  const res = await fetch(`${getBackend()}/api/admin/reviews`);
+  // Use revalidate cache — reviews don't change every second
+  const res = await fetch(`${getBackend()}/api/admin/reviews`, {
+    next: { revalidate: 300, tags: ["reviews"] },
+  });
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }

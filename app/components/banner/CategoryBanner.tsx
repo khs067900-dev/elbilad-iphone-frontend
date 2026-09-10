@@ -9,36 +9,60 @@ function CategoryBannerSlider({ images }: { images: string[] }) {
   const touchStart = useRef(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const goTo = useCallback((i: number) => setCurrent((i + images.length) % images.length), [images.length]);
+  const goTo = useCallback(
+    (i: number) => setCurrent((i + images.length) % images.length),
+    [images.length]
+  );
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => setCurrent((c) => (c + 1) % images.length), AUTO_PLAY_MS);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    intervalRef.current = setInterval(
+      () => setCurrent((c) => (c + 1) % images.length),
+      AUTO_PLAY_MS
+    );
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [images.length]);
 
   return (
     <div className="w-full px-3 sm:px-4 py-2">
-      <div className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-2xl ">
+      <div className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-2xl">
+        {/* Slider track */}
         <div
-          className="flex transition-transform duration-500 ease-in-out"
+          className="flex transition-transform duration-500 ease-in-out will-change-transform"
           style={{ transform: `translateX(${current * 100}%)` }}
-          onTouchStart={(e) => { touchStart.current = e.touches[0].clientX; }}
+          onTouchStart={(e) => {
+            touchStart.current = e.touches[0].clientX;
+          }}
           onTouchEnd={(e) => {
             const diff = touchStart.current - e.changedTouches[0].clientX;
-            if (Math.abs(diff) > SWIPE_THRESHOLD) goTo(current + (diff > 0 ? 1 : -1));
+            if (Math.abs(diff) > SWIPE_THRESHOLD)
+              goTo(current + (diff > 0 ? 1 : -1));
           }}
         >
           {images.map((src, i) => (
-            <div key={i} className="min-w-full">
+            <div key={i} className="shrink-0 w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt={`banner ${i + 1}`} className="w-full object-cover max-h-48 sm:max-h-110" loading={i === 0 ? "eager" : "lazy"} />
+              <img
+                src={src}
+                alt={`banner ${i + 1}`}
+                className="w-full object-cover max-h-48 sm:max-h-110"
+                loading={i === 0 ? "eager" : "lazy"}
+              />
             </div>
           ))}
         </div>
         {images.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
             {images.map((_, i) => (
-              <button key={i} onClick={() => goTo(i)} aria-label={`Go to slide ${i + 1}`} className={`w-2.5 h-2.5 rounded-full transition-colors ${i === current ? "bg-white" : "bg-white/50"}`} />
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  i === current ? "bg-white" : "bg-white/50"
+                }`}
+              />
             ))}
           </div>
         )}
@@ -47,9 +71,14 @@ function CategoryBannerSlider({ images }: { images: string[] }) {
   );
 }
 
-export default function CategoryBanner({ category, images: propImages }: { category: string; images?: string[] }) {
+export default function CategoryBanner({
+  category,
+  images: propImages,
+}: {
+  category: string;
+  images?: string[];
+}) {
   const images = propImages ?? [];
-
   if (!images.length) return null;
   return <CategoryBannerSlider images={images} />;
 }

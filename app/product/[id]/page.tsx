@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
 import ProductPageClient from "./ProductPageClient";
-import { getCachedProduct } from "../../lib/products-cache";
+import { getCachedProduct, getCachedCompany } from "../../lib/products-cache";
 
 export const revalidate = false;
 
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 const SITE_URL = "https://www.albiladksa.com";
 
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600 } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const [product, company] = await Promise.all([getCachedProduct(id), getCompany()]);
+  const [product, company] = await Promise.all([getCachedProduct(id), getCachedCompany()]);
 
   if (!product) {
     return { title: "المنتج غير موجود" };
@@ -76,7 +67,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [product, company] = await Promise.all([getCachedProduct(id), getCompany()]);
+  const [product, company] = await Promise.all([getCachedProduct(id), getCachedCompany()]);
 
   const siteName = company.nameAr || "مؤسسة البلاد الحديثة للإلكترونيات";
   const price = product?.salePrice || product?.price || 0;

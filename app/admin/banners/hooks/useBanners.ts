@@ -14,7 +14,10 @@ export function useBanners() {
   useEffect(() => {
     fetch(BASE, { credentials: "include" })
       .then((r) => r.json())
-      .then((data) => Array.isArray(data) && setBanners(data));
+      .then((data) => {
+        if (!Array.isArray(data)) return;
+        setBanners(data.map((b: BannerItem, i: number) => ({ ...b, _id: b._id ?? `banner-${i}-${Date.now()}` })));
+      });
   }, []);
 
   const handleUpload = async (index: number, file: File) => {
@@ -93,7 +96,7 @@ export function useBanners() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setBanners((prev) => [...prev, { url: "", active: true }]);
+      setBanners((prev) => [...prev, { url: "", active: true, _id: `banner-new-${Date.now()}` }]);
       toast.success("تمت إضافة بانر جديد");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشلت الإضافة");
@@ -102,5 +105,21 @@ export function useBanners() {
     }
   };
 
-  return { banners, loading, addingBanner, inputRefs, handleUpload, handleDeleteImage, handleDeleteSlot, handleToggle, handleAddBanner };
+  const handleReorder = async (newBanners: BannerItem[], order: number[]) => {
+    setBanners(newBanners);
+    try {
+      const res = await fetch(`${BASE}/reorder`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      });
+      if (!res.ok) throw new Error("فشل حفظ الترتيب");
+      toast.success("تم حفظ الترتيب");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "فشل حفظ الترتيب");
+    }
+  };
+
+  return { banners, loading, addingBanner, inputRefs, handleUpload, handleDeleteImage, handleDeleteSlot, handleToggle, handleAddBanner, handleReorder };
 }

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+let _fetchPromise: Promise<void> | null = null;
 
 interface CompanyStore {
   logo: string;
@@ -11,11 +12,14 @@ interface CompanyStore {
   email: string;
   website: string;
   details: string;
+  addressAr: string;
+  taxNumber: string;
+  _fetched: boolean;
   fetchCompany: () => Promise<void>;
   setLogo: (url: string) => void;
 }
 
-export const useCompanyStore = create<CompanyStore>((set) => ({
+export const useCompanyStore = create<CompanyStore>((set, get) => ({
   logo: "",
   nameAr: "",
   nameEn: "",
@@ -24,29 +28,39 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   email: "",
   website: "",
   details: "",
-  fetchCompany: async () => {
-    try {
-      const res = await fetch(`/api/admin/company`, { credentials: "include" });
-      if (!res.ok) return;
-      const text = await res.text();
-      if (!text) return;
-      const data = JSON.parse(text);
-      const fullLogo = data.logo
-        ? (data.logo.startsWith("http") ? data.logo : `${API}${data.logo}`)
-        : "";
-      set({
-        logo: fullLogo,
-        nameAr: data.nameAr || "",
-        nameEn: data.nameEn || "",
-        phone: data.phone || "",
-        whatsapp: data.whatsapp || "",
-        email: data.email || "",
-        website: data.website || "",
-        details: data.details || "",
-      });
-    } catch (e) { console.error(e); }
+  addressAr: "",
+  taxNumber: "",
+  _fetched: false,
+  fetchCompany: () => {
+    if (get()._fetched) return Promise.resolve();
+    if (_fetchPromise) return _fetchPromise;
+    _fetchPromise = (async () => {
+      try {
+        const res = await fetch(`/api/admin/company`, { credentials: "include" });
+        if (!res.ok) return;
+        const text = await res.text();
+        if (!text) return;
+        const data = JSON.parse(text);
+        const fullLogo = data.logo
+          ? (data.logo.startsWith("http") ? data.logo : `${API}${data.logo}`)
+          : "";
+        set({
+          logo: fullLogo,
+          nameAr: data.nameAr || "",
+          nameEn: data.nameEn || "",
+          phone: data.phone || "",
+          whatsapp: data.whatsapp || "",
+          email: data.email || "",
+          website: data.website || "",
+          details: data.details || "",
+          addressAr: data.addressAr || "",
+          taxNumber: data.taxNumber || "",
+          _fetched: true,
+        });
+      } catch (e) { console.error(e); }
+    })();
+    return _fetchPromise;
   },
-  // keep fetchLogo as alias for backward compat
   setLogo: (url) => set({ logo: url }),
 }));
 

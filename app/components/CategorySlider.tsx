@@ -88,7 +88,6 @@ export default function CategorySlider({ categories }: { categories: Category[] 
                     src={cat.image}
                     alt={cat.name}
                     fill
-                    unoptimized
                     className={`transition-transform duration-500 group-hover:scale-105 ${
                       cat.comingSoon ? "object-contain object-center scale-135" : "object-cover object-center scale-90"
                     }`}

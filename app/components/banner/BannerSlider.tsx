@@ -86,7 +86,7 @@ export default function BannerSlider({ images }: { images: string[] }) {
                 fill
                 className="object-cover"
                 priority={current === 0}
-                unoptimized
+                sizes="100vw"
               />
             </motion.div>
           </AnimatePresence>

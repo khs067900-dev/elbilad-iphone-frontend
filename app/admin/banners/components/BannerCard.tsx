@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useRef } from "react";
 import { API, LABELS } from "../constants";
 import type { BannerItem } from "../types";
 
@@ -18,9 +19,10 @@ export default function BannerCard({
   banner, index, isLoading, inputRef, onUpload, onToggle, onDeleteImage, onDeleteSlot,
 }: BannerCardProps) {
   const hasImage = !!banner.url;
+  const localRef = useRef<HTMLInputElement | null>(null);
 
   const triggerInput = () => {
-    if (!isLoading) (document.querySelector(`input[data-idx="${index}"]`) as HTMLInputElement)?.click();
+    if (!isLoading) localRef.current?.click();
   };
 
   return (
@@ -92,8 +94,7 @@ export default function BannerCard({
 
         <div className="flex items-center gap-2 shrink-0">
           <input
-            ref={inputRef}
-            data-idx={index}
+            ref={(el) => { localRef.current = el; inputRef(el); }}
             type="file"
             accept="image/*"
             className="hidden"

@@ -4,23 +4,14 @@ import Script from "next/script";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import Footer from "./components/Footer";
+import { getCachedCompany } from "./lib/products-cache";
 
 const almarai = Almarai({ subsets: ["arabic"], weight: ["400", "700", "800"], display: "swap" });
 
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 const SITE_URL = "https://www.albiladksa.com";
 
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600, tags: ["company"] } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
-  const c = await getCompany();
+  const c = await getCachedCompany();
 
   const siteName = c.nameAr || "مؤسسة البلاد الحديثة للإلكترونيات";
   const description = c.details || "مؤسسة البلاد الحديثة للإلكترونيات - أجهزة إلكترونية بالأقساط داخل المملكة العربية السعودية. أفضل الأسعار على الجوالات، اللابتوبات، الأجهزة اللوحية والإكسسوارات.";

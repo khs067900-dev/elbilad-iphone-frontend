@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-const PREORDER_DATE = new Date("2026-09-12T00:00:00");
+const PREORDER_DATE = new Date("2026-09-12T20:00:00Z"); // 11 PM KSA (UTC+3)
 
 const IMAGES = [
   "/e5ae006f-b733-41d4-9e48-69994eeacbe4.webp",

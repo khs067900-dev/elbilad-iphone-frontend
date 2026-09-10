@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-const TARGET = new Date("2026-09-12T00:00:00");
+const TARGET = new Date("2026-09-12T20:00:00Z"); // 11 PM KSA (UTC+3)
 
 function getTimeLeft() {
   const diff = TARGET.getTime() - Date.now();

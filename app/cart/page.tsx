@@ -23,14 +23,36 @@ export default function CartPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [customerDraft, setCustomerDraft] = useState<Partial<CustomerInfo>>(customer ?? {});
   const [reviewInfo, setReviewInfo] = useState<CustomerInfo | null>(null);
+  const [installmentMonths, setInstallmentMonths] = useState<number | undefined>(undefined);
+  const [downPaymentAmounts, setDownPaymentAmounts] = useState<number[]>([1000, 1500, 2000]);
 
   useEffect(() => { setMounted(true); }, []);
 
+  useEffect(() => {
+    if (!mounted || items.length === 0) return;
+
+    const categories = [...new Set(items.map((i) => i.product.category).filter(Boolean))].join(",");
+
+    Promise.all([
+      fetch("/api/admin/down-payments", { credentials: "include" }).then((r) => r.json()).catch(() => ({})),
+      fetch(`/api/admin/product-down-payments/public?categories=${encodeURIComponent(categories)}`).then((r) => r.json()).catch(() => ({})),
+    ]).then(([globalData, catData]) => {
+      // لو كل المنتجات من نفس الكاتيجوري وعندها دفعات مخصصة، استخدمها
+      const uniqueCategories = [...new Set(items.map((i) => i.product.category).filter(Boolean))];
+      const allSameCategory = uniqueCategories.length === 1 && catData[uniqueCategories[0]]?.length > 0;
+      if (allSameCategory) {
+        setDownPaymentAmounts(catData[uniqueCategories[0]]);
+      } else if (globalData?.amounts?.length > 0) {
+        setDownPaymentAmounts(globalData.amounts);
+      }
+    });
+
+    const fallback = Math.max(...items.map((i) => i.product.installment?.months ?? 0)) || undefined;
+    setInstallmentMonths(fallback);
+  }, [mounted, items]);
+
   const total = mounted ? totalPrice() : 0;
   const count = mounted ? totalItems() : 0;
-  const installmentMonths = mounted
-    ? Math.max(...items.map((i) => i.product.installment?.months ?? 0)) || undefined
-    : undefined;
 
   if (!mounted) return null;
 
@@ -144,6 +166,7 @@ export default function CartPage() {
                 itemCount={count}
                 initialData={customerDraft}
                 installmentMonths={installmentMonths}
+                downPaymentAmounts={downPaymentAmounts}
                 onBack={() => {
                   setStep(1);
                   window.scrollTo({ top: 0, behavior: "smooth" });

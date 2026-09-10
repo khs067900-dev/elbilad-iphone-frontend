@@ -2,91 +2,77 @@ import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
 import CustomerReviews from "./components/CustomerReviews";
 import ShopByCategory from "./components/ShopByCategory";
-import { getCachedProducts } from "./lib/products-cache";
+import {
+  getCachedProducts,
+  getCachedHomeConfig,
+  getCachedBannerMap,
+  getCachedCompany,
+} from "./lib/products-cache";
 
-export const dynamic = "force-dynamic";
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
+// ISR: revalidate every 60s — driven by the shortest-lived cache (products)
+// Individual data sources use their own longer TTLs via unstable_cache
+export const revalidate = 60;
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://albilaad-ksa.com";
 
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600 } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
-
-async function getHomeConfig() {
-  try {
-    const [settingsRes, maxRes] = await Promise.all([
-      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { tags: ["home-settings"], revalidate: 3600 } }),
-      fetch(`${BACKEND}/api/admin/sub-categories/max`, { next: { tags: ["home-settings"], revalidate: 3600 } }),
-    ]);
-    const settings = settingsRes.ok ? await settingsRes.json() : [];
-    const { max = 4 } = maxRes.ok ? await maxRes.json() : {};
-    return { settings, max };
-  } catch {
-    return { settings: [], max: 4 };
-  }
-}
-
-async function getBannerMap(categories: string[]) {
-  if (!categories.length) return {};
-  try {
-    const r = await fetch(
-      `${BACKEND}/api/admin/category-banners-bulk?categories=${encodeURIComponent(categories.join(","))}`,
-      { next: { revalidate: 3600 } }
-    );
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
-
 export default async function Home() {
-  const [c, products, homeConfig] = await Promise.all([
-    getCompany(),
+  // All parallel — no waterfall at this level
+  const [products, homeConfig, company] = await Promise.all([
     getCachedProducts(),
-    getHomeConfig(),
+    getCachedHomeConfig(),
+    getCachedCompany(),
   ]);
-  const categories = [...new Set((products as { category?: string }[]).map((p) => p.category).filter(Boolean))] as string[];
-  const bannerMap = await getBannerMap(categories);
-  const siteName = c.nameAr || "مؤسسة البلاد الحديثة للإلكترونيات";
-  const logoUrl = c.logo
-    ? (c.logo.startsWith("http") ? c.logo : `${BACKEND}${c.logo}`)
+
+  // bannerMap depends on products categories — unavoidable sequential step,
+  // but getCachedBannerMap is itself cached so the DB hit is rare
+  const categories = [
+    ...new Set(
+      (products as { category?: string }[])
+        .map((p) => p.category)
+        .filter(Boolean)
+    ),
+  ] as string[];
+  const bannerMap = await getCachedBannerMap(categories.join(","));
+
+  const siteName = company.nameAr || "مؤسسة البلاد الحديثة للإلكترونيات";
+  const logoUrl = company.logo
+    ? company.logo.startsWith("http")
+      ? company.logo
+      : `${process.env.BACKEND_URL || "http://localhost:5000"}${company.logo}`
     : "";
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteName,
-    alternateName: c.nameEn || "Al Bilad Modern Electronics",
+    alternateName: company.nameEn || "Al Bilad Modern Electronics",
     url: SITE_URL,
     logo: logoUrl,
     contactPoint: [
-      c.phone && {
+      company.phone && {
         "@type": "ContactPoint",
-        telephone: c.phone,
+        telephone: company.phone,
         contactType: "customer service",
         areaServed: "SA",
         availableLanguage: "Arabic",
       },
-      c.whatsapp && {
+      company.whatsapp && {
         "@type": "ContactPoint",
-        telephone: c.whatsapp,
+        telephone: company.whatsapp,
         contactType: "sales",
         areaServed: "SA",
         availableLanguage: "Arabic",
       },
     ].filter(Boolean),
-    address: c.addressAr ? {
-      "@type": "PostalAddress",
-      addressLocality: c.addressAr,
-      addressCountry: "SA",
-    } : undefined,
-    email: c.email || undefined,
-    sameAs: c.website ? [c.website] : [],
+    address: company.addressAr
+      ? {
+          "@type": "PostalAddress",
+          addressLocality: company.addressAr,
+          addressCountry: "SA",
+        }
+      : undefined,
+    email: company.email || undefined,
+    sameAs: company.website ? [company.website] : [],
   };
 
   const webSiteJsonLd = {
@@ -114,9 +100,16 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
-      <main className="min-h-screen" style={{ background: 'linear-gradient(180deg, #d4ece8 0%, #e2f3f0 20%, #edf7f5 45%, #f5fbf9 70%, #ffffff 100%)' }}>
+      <main
+        className="min-h-screen"
+        style={{
+          background:
+            "linear-gradient(180deg, #d4ece8 0%, #e2f3f0 20%, #edf7f5 45%, #f5fbf9 70%, #ffffff 100%)",
+        }}
+      >
         <Banner />
-        <ShopByCategory />
+        {/* Pass homeConfig + categories to avoid duplicate home-settings fetch */}
+        <ShopByCategory homeConfig={homeConfig} categories={categories} />
         <ProductGrid products={products} homeConfig={homeConfig} bannerMap={bannerMap} />
         <CustomerReviews />
       </main>

@@ -61,12 +61,11 @@ export default function FilesPage() {
   }
 
   async function deleteItemImage(index: number) {
-    setData((p) => {
-      const items = [...p.footerItems];
-      items[index] = { ...items[index], image: "" };
-      return { ...p, footerItems: items };
-    });
-    // سيتم الحفظ يدوياً بزر الحفظ
+    const newItems = data.footerItems.map((item, i) =>
+      i === index ? { ...item, image: "" } : item
+    );
+    setData((p) => ({ ...p, footerItems: newItems }));
+    await saveSection("items", { footerItems: newItems });
   }
 
   async function uploadQr(file: File) {
@@ -334,7 +333,13 @@ export default function FilesPage() {
                             <FiExternalLink size={13} />
                             عرض الملف
                           </button>
-                          <button onClick={() => updateItem(i, "file", "")}
+                          <button onClick={() => {
+                            const newItems = data.footerItems.map((it, idx) =>
+                              idx === i ? { ...it, file: "" } : it
+                            );
+                            setData((p) => ({ ...p, footerItems: newItems }));
+                            saveSection("items", { footerItems: newItems });
+                          }}
                             className="text-red-400 hover:text-red-600 text-xs hover:underline">
                             حذف
                           </button>
@@ -435,7 +440,7 @@ export default function FilesPage() {
                       <FiExternalLink size={13} />
                       عرض الملف
                     </button>
-                    <button onClick={() => setData((p) => ({ ...p, file1: "" }))}
+                    <button onClick={() => { setData((p) => ({ ...p, file1: "" })); saveSection("s1", { link1: data.link1, link1Type: data.linkType1, file1: "" }); }}
                       className="text-red-400 hover:text-red-600 text-xs hover:underline">
                       حذف
                     </button>
@@ -530,7 +535,7 @@ export default function FilesPage() {
                       <FiExternalLink size={13} />
                       عرض الملف
                     </button>
-                    <button onClick={() => setData((p) => ({ ...p, file2: "" }))}
+                    <button onClick={() => { setData((p) => ({ ...p, file2: "" })); saveSection("s2", { link2: data.link2, link2Type: data.linkType2, file2: "" }); }}
                       className="text-red-400 hover:text-red-600 text-xs hover:underline">
                       حذف
                     </button>

@@ -1,7 +1,6 @@
 import CategorySlider from "./CategorySlider";
 import { slugConfigs } from "../lib/categoryConfig";
-
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
+import { getCachedSubCategoriesPublic } from "../lib/products-cache";
 
 function resolveHref(catName: string): string {
   const name = catName?.trim();
@@ -11,7 +10,8 @@ function resolveHref(catName: string): string {
     name.toLowerCase().includes("سماعات") ||
     name.toLowerCase() === "speaker" ||
     name.toLowerCase() === "earbuds"
-  ) return "/audio";
+  )
+    return "/audio";
 
   if (name === "اكسسورات") return "/games";
   if (name.includes("بطاريات")) return "/accessories/anker-batteries";
@@ -20,7 +20,12 @@ function resolveHref(catName: string): string {
     const parent = config.parentHref.replace(/^\//, "").split("/")[0];
     const path = `/${parent}/${slug}`;
     if (config.filters.category && config.filters.category === name) return path;
-    if (config.filters.nameIncludes?.some((kw) => name.toLowerCase().includes(kw.toLowerCase()))) return path;
+    if (
+      config.filters.nameIncludes?.some((kw) =>
+        name.toLowerCase().includes(kw.toLowerCase())
+      )
+    )
+      return path;
   }
 
   return `/search?q=${encodeURIComponent(name)}`;
@@ -28,63 +33,66 @@ function resolveHref(catName: string): string {
 
 type Category = { name: string; count: number; image: string };
 type Setting = { category: string; subCategory: string; showInHome: boolean; order: number };
+type HomeConfig = { settings: Setting[]; max: number };
 
 const COMING_SOON_CARDS = [
-  { name: "ايفون 18", count: 0, image: "/8435e6ba-7c1d-4fc7-98fa-0193c4db8529.jpg", href: "/smartphones/iphone-18", comingSoon: true },
+  {
+    name: "ايفون 18",
+    count: 0,
+    image: "/8435e6ba-7c1d-4fc7-98fa-0193c4db8529.jpg",
+    href: "/smartphones/iphone-18",
+    comingSoon: true,
+  },
 ];
 
-async function getCategories(): Promise<Category[]> {
-  try {
-    const [catRes, settingsRes] = await Promise.all([
-      fetch(`${BACKEND}/api/admin/sub-categories/public`, { next: { revalidate: 3600 } }),
-      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { revalidate: 3600 } }),
-    ]);
-    const allCats: Category[] = catRes.ok ? await catRes.json() : [];
-    const settings: Setting[] = settingsRes.ok ? await settingsRes.json() : [];
+export default async function ShopByCategory({
+  homeConfig,
+}: {
+  homeConfig: HomeConfig;
+  categories: string[];
+}) {
+  // getCachedSubCategoriesPublic is cached independently (revalidate: 3600)
+  const allCats: Category[] = await getCachedSubCategoriesPublic();
 
-    const orderMap = new Map(
-      settings.filter((s) => s.showInHome).map((s) => [s.category, s.order])
-    );
+  if (!allCats.length) return null;
 
-    return allCats.sort((a, b) => {
-      const aHome = orderMap.has(a.name);
-      const bHome = orderMap.has(b.name);
-      if (aHome && !bHome) return -1;
-      if (!aHome && bHome) return 1;
-      if (aHome && bHome) return (orderMap.get(a.name) ?? 0) - (orderMap.get(b.name) ?? 0);
-      return 0;
-    });
-  } catch {
-    return [];
-  }
-}
+  // Use homeConfig passed from page.tsx — no duplicate fetch
+  const { settings } = homeConfig;
+  const orderMap = new Map(
+    settings.filter((s) => s.showInHome).map((s) => [s.category, s.order])
+  );
 
-export default async function ShopByCategory() {
-  const categories = await getCategories();
-  if (!categories.length) return null;
+  const sorted = [...allCats].sort((a, b) => {
+    const aHome = orderMap.has(a.name);
+    const bHome = orderMap.has(b.name);
+    if (aHome && !bHome) return -1;
+    if (!aHome && bHome) return 1;
+    if (aHome && bHome)
+      return (orderMap.get(a.name) ?? 0) - (orderMap.get(b.name) ?? 0);
+    return 0;
+  });
 
   const categoriesWithHref = [
     ...COMING_SOON_CARDS,
-    ...categories.map((cat) => ({
-      ...cat,
-      href: resolveHref(cat.name),
-    })),
+    ...sorted.map((cat) => ({ ...cat, href: resolveHref(cat.name) })),
   ];
 
   return (
     <div className="w-full" dir="rtl">
-      {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-xs text-[#6DBE00] font-semibold uppercase tracking-widest mb-0.5">تصفح</p>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">تسوق حسب الأقسام</h2>
+            <p className="text-xs text-[#6DBE00] font-semibold uppercase tracking-widest mb-0.5">
+              تصفح
+            </p>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">
+              تسوق حسب الأقسام
+            </h2>
           </div>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[#155E6F] to-[#6DBE00]" />
         </div>
       </div>
 
-      {/* Slider */}
       <div className="bg-[#f8fafb] px-4 sm:px-6 py-6">
         <div className="max-w-7xl mx-auto">
           <CategorySlider categories={categoriesWithHref} />

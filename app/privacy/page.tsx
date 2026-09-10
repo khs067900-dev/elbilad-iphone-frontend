@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, ReactNode } from "react";
 import ContactSection from "../components/ContactSection";
+import { useCompanyStore } from "../store/companyStore";
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -123,16 +124,12 @@ const commitments = [
   "نحتفظ بالبيانات فقط للمدة اللازمة لإتمام الخدمة",
 ];
 
-type Company = { nameAr?: string; addressAr?: string; phone?: string; whatsapp?: string; email?: string; taxNumber?: string };
-
 export default function PrivacyPage() {
   const [heroVis, setHeroVis] = useState(false);
-  const [company, setCompany] = useState<Company | null>(null);
+  const { nameAr, phone, whatsapp, email, addressAr, taxNumber, fetchCompany } = useCompanyStore();
 
   useEffect(() => { const t = setTimeout(() => setHeroVis(true), 80); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    fetch("/api/admin/company").then(r => r.json()).then(setCompany).catch(() => {});
-  }, []);
+  useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
   const anim = (delay: number): React.CSSProperties => ({
     opacity: heroVis ? 1 : 0,
@@ -255,7 +252,7 @@ export default function PrivacyPage() {
       </section>
 
       {/* ════════ STORE INFO ════════ */}
-      {company && (
+      {nameAr && (
         <section className="w-full max-w-5xl mx-auto px-4 sm:px-8 mt-10 sm:mt-14">
           <FadeUp>
             <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100/80 shadow-sm overflow-hidden">
@@ -272,11 +269,11 @@ export default function PrivacyPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    company.nameAr && { label: "اسم الجهة", value: company.nameAr },
-                    company.addressAr && { label: "العنوان", value: company.addressAr },
-                    company.phone && { label: "الهاتف", value: company.phone },
-                    company.email && { label: "البريد الإلكتروني", value: company.email },
-                    company.taxNumber && { label: "الرقم الضريبي", value: company.taxNumber },
+                    nameAr && { label: "اسم الجهة", value: nameAr },
+                    addressAr && { label: "العنوان", value: addressAr },
+                    phone && { label: "الهاتف", value: phone },
+                    email && { label: "البريد الإلكتروني", value: email },
+                    taxNumber && { label: "الرقم الضريبي", value: taxNumber },
                   ].filter(Boolean).map((item, i) => (
                     <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-[#f0f7fb]">
                       <div className="w-6 h-6 rounded-lg bg-[#1F7A8C] flex items-center justify-center text-white shrink-0 mt-0.5">
@@ -299,9 +296,9 @@ export default function PrivacyPage() {
       <section className="w-full max-w-5xl mx-auto px-4 sm:px-8 mt-8 sm:mt-12">
         <ContactSection
           title="وسائل التواصل"
-          phone={company?.whatsapp}
-          whatsapp={company?.whatsapp}
-          email={company?.email}
+          phone={whatsapp}
+          whatsapp={whatsapp}
+          email={email}
           fadeDelay={200}
         />
       </section>

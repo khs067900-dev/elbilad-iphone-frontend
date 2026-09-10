@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import ContactSection from "../components/ContactSection";
+import { useCompanyStore } from "../store/companyStore";
 
 /* ── Intersection Observer hook ── */
 function useInView(threshold = 0.1) {
@@ -167,13 +168,11 @@ const sections = [
 /* ── Component ── */
 export default function AboutClient() {
   const [heroVisible, setHeroVisible] = useState(false);
-  const [company, setCompany] = useState<{ whatsapp?: string; email?: string; addressAr?: string } | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const { whatsapp, email, fetchCompany } = useCompanyStore();
 
   useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 80); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    fetch("/api/admin/company").then((r) => r.json()).then((d) => setCompany(d)).catch(() => {});
-  }, []);
+  useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
@@ -362,9 +361,9 @@ export default function AboutClient() {
         {/* Contact */}
         <ContactSection
           title="وسائل التواصل"
-          phone={company?.whatsapp}
-          whatsapp={company?.whatsapp}
-          email={company?.email}
+          phone={whatsapp}
+          whatsapp={whatsapp}
+          email={email}
           fadeDelay={300}
         />
       </section>
