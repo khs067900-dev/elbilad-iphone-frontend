@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-const TARGET = new Date("2026-09-12T20:00:00Z"); // 11 PM KSA (UTC+3)
+const TARGET = new Date(
+  process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T23:00:00+03:00"
+);
 
 function getTimeLeft() {
   const diff = TARGET.getTime() - Date.now();
@@ -150,7 +152,7 @@ export default function IPhone18Popup() {
 
             {/* Dates */}
             <div style={{ display:"flex", gap:"8px", marginBottom:"12px" }}>
-              {[{date:"١٢ سبتمبر",label:"الطلب المسبق"},{date:"١٨ سبتمبر",label:"موعد الإتاحة"}].map(({date,label}) => (
+              {[{date:"15 سبتمبر",label:"الطلب المسبق"},{date:"١٨ سبتمبر",label:"موعد الإتاحة"}].map(({date,label}) => (
                 <div key={date} style={{
                   flex:1, textAlign:"center", padding:"8px 6px",
                   background:"rgba(21,94,111,0.15)",
