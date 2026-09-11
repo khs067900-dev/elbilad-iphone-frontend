@@ -24,7 +24,7 @@ export default async function IPhone18Page() {
   }
 
   const allProducts = await getCachedProducts();
-  const products = allProducts.filter((p) =>
+  const products = allProducts.filter((p: { category?: string; name?: string }) =>
     KEYWORDS.some((kw) => p.category?.toLowerCase().includes(kw.toLowerCase()) || p.name?.toLowerCase().includes(kw.toLowerCase()))
   );
 
