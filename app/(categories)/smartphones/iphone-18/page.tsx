@@ -24,9 +24,20 @@ export default async function IPhone18Page() {
   }
 
   const allProducts = await getCachedProducts();
-  const products = allProducts.filter((p: { category?: string; name?: string }) =>
-    KEYWORDS.some((kw) => p.category?.toLowerCase().includes(kw.toLowerCase()) || p.name?.toLowerCase().includes(kw.toLowerCase()))
-  );
+  const products = allProducts
+    .filter((p: { category?: string; name?: string }) =>
+      KEYWORDS.some((kw) => p.category?.toLowerCase().includes(kw.toLowerCase()) || p.name?.toLowerCase().includes(kw.toLowerCase()))
+    )
+    .sort((a: { name?: string }, b: { name?: string }) => {
+      const rank = (name: string = "") => {
+        const n = name.toLowerCase();
+        if (n.includes("pro max")) return 0;
+        if (n.includes("pro")) return 1;
+        if (n.includes("duo")) return 3;
+        return 2;
+      };
+      return rank(a.name) - rank(b.name);
+    });
 
   return <IPhone18Client products={products} />;
 }
