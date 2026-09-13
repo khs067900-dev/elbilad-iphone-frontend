@@ -132,7 +132,8 @@ export default function ComingSoon({ modelName, slides }: Props) {
         <div className="flex gap-3 w-full max-w-sm">
           <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
             <p className="text-[#6DBE00] text-[10px] font-semibold uppercase tracking-wider mb-0.5">فتح باب الحجز</p>
-            <p className="text-white text-sm font-bold">15 سبتمبر 2026</p>
+            <p className="text-white text-sm font-bold">13 سبتمبر 2026</p>
+            <p className="text-white/60 text-xs">الساعة 3:00 م</p>
           </div>
           <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
             <p className="text-[#6DBE00] text-[10px] font-semibold uppercase tracking-wider mb-0.5">موعد التوفير</p>
