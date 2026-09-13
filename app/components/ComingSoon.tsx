@@ -50,7 +50,7 @@ export default function ComingSoon({ modelName, slides }: Props) {
       const expired = t.days === 0 && t.hours === 0 && t.minutes === 0 && t.seconds === 0;
       if (expired && !calledRef.current) {
         calledRef.current = true;
-        router.refresh();
+        window.location.reload();
       }
     }, 1000);
     return () => clearInterval(id);
