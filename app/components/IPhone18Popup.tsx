@@ -44,6 +44,7 @@ export default function IPhone18Popup() {
 
   if (!visible) return null;
   const pad = (n: number) => String(n).padStart(2, "0");
+  const ended = time.d === 0 && time.h === 0 && time.m === 0 && time.s === 0;
 
   return (
     <>
@@ -122,59 +123,86 @@ export default function IPhone18Popup() {
               البلاد — خلك أول.
             </p>
 
-            {/* Timer label */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", marginBottom:"8px" }}>
-              <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:"#1F7A8C", animation:"_dot 1.2s ease-in-out infinite", flexShrink:0 }} />
-              <p style={{ color:"rgba(255,255,255,0.45)", fontSize:"10px", fontWeight:700, margin:0, letterSpacing:"1px" }}>
-                العدّ التنازلي بدأ — كن مستعدًا قبل الجميع
-              </p>
-            </div>
-
-            {/* Timer */}
-            <div style={{ display:"flex", justifyContent:"center", gap:"6px", marginBottom:"14px" }}>
-              {[{n:time.d,l:"يوم"},{n:time.h,l:"ساعة"},{n:time.m,l:"دقيقة"},{n:time.s,l:"ثانية"}].map(({n,l},i) => (
-                <div key={l} style={{ display:"flex", alignItems:"flex-start", gap:"6px" }}>
-                  <div style={{ textAlign:"center" }}>
-                    <div style={{
-                      background:"rgba(255,255,255,0.07)",
-                      border:"1px solid rgba(31,122,140,0.4)",
-                      color:"#fff", borderRadius:"8px",
-                      fontSize:"22px", fontWeight:800, lineHeight:1,
-                      padding:"8px 10px", minWidth:"48px", letterSpacing:"-1px",
-                      animation: l==="ثانية" ? "_gb 1s ease-in-out infinite" : undefined,
-                    }}>{pad(n)}</div>
-                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:"10px", fontWeight:600, margin:"4px 0 0" }}>{l}</p>
-                  </div>
-                  {i < 3 && <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"18px", paddingTop:"6px" }}>:</span>}
-                </div>
-              ))}
-            </div>
-
-            {/* Dates */}
-            <div style={{ display:"flex", gap:"8px", marginBottom:"12px" }}>
-              {[{date:"15 سبتمبر",label:"الطلب المسبق"},{date:"١٨ سبتمبر",label:"موعد الإتاحة"}].map(({date,label}) => (
-                <div key={date} style={{
-                  flex:1, textAlign:"center", padding:"8px 6px",
-                  background:"rgba(21,94,111,0.15)",
-                  border:"1px solid rgba(21,94,111,0.4)",
-                  borderRadius:"10px", backdropFilter:"blur(4px)",
+            {ended ? (
+              <>
+                {/* Booking open message */}
+                <p style={{
+                  fontWeight:800, fontSize:"20px", margin:"0 0 18px",
+                  background:"linear-gradient(90deg,#fff,#7dd4e8,#fff)",
+                  backgroundSize:"200% auto",
+                  WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+                  animation:"_sh 3s linear infinite",
                 }}>
-                  <p style={{ color:"#fff", fontSize:"14px", fontWeight:800, margin:0 }}>{date}</p>
-                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:"10px", margin:"2px 0 0" }}>{label}</p>
+                  🎉 فتح باب الحجز الآن!
+                </p>
+                <a href="/smartphones/iphone-18" onClick={close} style={{
+                  display:"block", width:"100%", padding:"13px",
+                  background:"linear-gradient(135deg,#155E6F,#1F7A8C)",
+                  color:"#fff", textAlign:"center", textDecoration:"none",
+                  borderRadius:"12px", fontSize:"15px", fontWeight:800,
+                  boxShadow:"0 8px 28px rgba(21,94,111,0.45)", letterSpacing:"0.3px",
+                  marginBottom:"12px",
+                }}>
+                  احجز الآن — iPhone 18
+                </a>
+              </>
+            ) : (
+              <>
+                {/* Timer label */}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"6px", marginBottom:"8px" }}>
+                  <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:"#1F7A8C", animation:"_dot 1.2s ease-in-out infinite", flexShrink:0 }} />
+                  <p style={{ color:"rgba(255,255,255,0.45)", fontSize:"10px", fontWeight:700, margin:0, letterSpacing:"1px" }}>
+                    العدّ التنازلي بدأ — كن مستعدًا قبل الجميع
+                  </p>
                 </div>
-              ))}
-            </div>
 
-            {/* CTA */}
-            <a href="/smartphones/iphone-18" onClick={close} style={{
-              display:"block", width:"100%", padding:"13px",
-              background:"linear-gradient(135deg,#155E6F,#1F7A8C)",
-              color:"#fff", textAlign:"center", textDecoration:"none",
-              borderRadius:"12px", fontSize:"14px", fontWeight:800,
-              boxShadow:"0 8px 28px rgba(21,94,111,0.45)", letterSpacing:"0.3px",
-            }}>
-              كن من الأوائل — اعرف التفاصيل
-            </a>
+                {/* Timer */}
+                <div style={{ display:"flex", justifyContent:"center", gap:"6px", marginBottom:"14px" }}>
+                  {[{n:time.d,l:"يوم"},{n:time.h,l:"ساعة"},{n:time.m,l:"دقيقة"},{n:time.s,l:"ثانية"}].map(({n,l},i) => (
+                    <div key={l} style={{ display:"flex", alignItems:"flex-start", gap:"6px" }}>
+                      <div style={{ textAlign:"center" }}>
+                        <div style={{
+                          background:"rgba(255,255,255,0.07)",
+                          border:"1px solid rgba(31,122,140,0.4)",
+                          color:"#fff", borderRadius:"8px",
+                          fontSize:"22px", fontWeight:800, lineHeight:1,
+                          padding:"8px 10px", minWidth:"48px", letterSpacing:"-1px",
+                          animation: l==="ثانية" ? "_gb 1s ease-in-out infinite" : undefined,
+                        }}>{pad(n)}</div>
+                        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:"10px", fontWeight:600, margin:"4px 0 0" }}>{l}</p>
+                      </div>
+                      {i < 3 && <span style={{ color:"rgba(255,255,255,0.2)", fontSize:"18px", paddingTop:"6px" }}>:</span>}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Dates */}
+                <div style={{ display:"flex", gap:"8px", marginBottom:"12px" }}>
+                  {[{date:"15 سبتمبر",label:"الطلب المسبق"},{date:"١٨ سبتمبر",label:"موعد الإتاحة"}].map(({date,label}) => (
+                    <div key={date} style={{
+                      flex:1, textAlign:"center", padding:"8px 6px",
+                      background:"rgba(21,94,111,0.15)",
+                      border:"1px solid rgba(21,94,111,0.4)",
+                      borderRadius:"10px", backdropFilter:"blur(4px)",
+                    }}>
+                      <p style={{ color:"#fff", fontSize:"14px", fontWeight:800, margin:0 }}>{date}</p>
+                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:"10px", margin:"2px 0 0" }}>{label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <a href="/smartphones/iphone-18" onClick={close} style={{
+                  display:"block", width:"100%", padding:"13px",
+                  background:"linear-gradient(135deg,#155E6F,#1F7A8C)",
+                  color:"#fff", textAlign:"center", textDecoration:"none",
+                  borderRadius:"12px", fontSize:"14px", fontWeight:800,
+                  boxShadow:"0 8px 28px rgba(21,94,111,0.45)", letterSpacing:"0.3px",
+                }}>
+                  كن من الأوائل — اعرف التفاصيل
+                </a>
+              </>
+            )}
 
             <p style={{ textAlign:"center", color:"rgba(255,255,255,0.15)", fontSize:"10px", margin:"10px 0 0" }}>
               مؤسسة البلاد الحديثة للإلكترونيات
