@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 const DEFAULT_SLIDES = [
   "/e5ae006f-b733-41d4-9e48-69994eeacbe4.webp",
@@ -33,7 +32,6 @@ export default function ComingSoon({ modelName, slides }: Props) {
   const images = slides?.length ? slides : DEFAULT_SLIDES;
   const [active, setActive] = useState(0);
   const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const router = useRouter();
   const calledRef = useRef(false);
 
   // Slideshow
@@ -54,7 +52,7 @@ export default function ComingSoon({ modelName, slides }: Props) {
       }
     }, 1000);
     return () => clearInterval(id);
-  }, [router]);
+  }, []);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
