@@ -56,7 +56,7 @@ function IPhone18Card({ product, index, onReserve }: { product: Product; index: 
           </div>
         )}
         <div className={`absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-xl ${product.inStock ? "bg-emerald-500 text-white" : "bg-gray-400 text-white"}`}>
-          {product.inStock ? "متوفر" : "نفذ"}
+          {product.inStock ? "قريباً" : "نفذ"}
         </div>
       </div>
 
@@ -210,7 +210,7 @@ export default function IPhone18Client({ products }: { products: Product[] }) {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {products.map((p, i) => (
                 <IPhone18Card key={p._id} product={p} index={i} onReserve={handleReserve} />
               ))}
