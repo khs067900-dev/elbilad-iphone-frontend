@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import SmartphonesClient from "../(categories)/smartphones/SmartphonesClient";
-import type { Product } from "./products/types";
+import { useRouter } from "next/navigation";
 
 const DEFAULT_SLIDES = [
   "/e5ae006f-b733-41d4-9e48-69994eeacbe4.webp",
@@ -13,8 +12,6 @@ const DEFAULT_SLIDES = [
 const RESERVATION_DATE = new Date(
   process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T23:00:00+03:00"
 );
-
-const KEYWORDS = ["ايفون 18", "iphone 18", "iphone18"];
 
 function getTimeLeft(target: Date) {
   const diff = target.getTime() - Date.now();
@@ -36,7 +33,7 @@ export default function ComingSoon({ modelName, slides }: Props) {
   const images = slides?.length ? slides : DEFAULT_SLIDES;
   const [active, setActive] = useState(0);
   const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [products, setProducts] = useState<Product[] | null>(null);
+  const router = useRouter();
   const calledRef = useRef(false);
 
   // Slideshow
@@ -45,7 +42,7 @@ export default function ComingSoon({ modelName, slides }: Props) {
     return () => clearInterval(id);
   }, [images.length]);
 
-  // Countdown + fetch on expire
+  // Countdown + refresh on expire
   useEffect(() => {
     const id = setInterval(() => {
       const t = getTimeLeft(RESERVATION_DATE);
@@ -53,28 +50,11 @@ export default function ComingSoon({ modelName, slides }: Props) {
       const expired = t.days === 0 && t.hours === 0 && t.minutes === 0 && t.seconds === 0;
       if (expired && !calledRef.current) {
         calledRef.current = true;
-        fetch("/api/products")
-          .then((r) => r.json())
-          .then((all: Product[]) => {
-            const filtered = all.filter((p) =>
-              KEYWORDS.some(
-                (kw) =>
-                  p.category?.toLowerCase().includes(kw) ||
-                  p.name?.toLowerCase().includes(kw)
-              )
-            );
-            setProducts(filtered);
-          })
-          .catch(() => setProducts([]));
+        router.refresh();
       }
     }, 1000);
     return () => clearInterval(id);
-  }, []);
-
-  // Timer expired and products loaded → show shop page
-  if (products !== null) {
-    return <SmartphonesClient initialProducts={products} />;
-  }
+  }, [router]);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -133,7 +113,7 @@ export default function ComingSoon({ modelName, slides }: Props) {
           <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
             <p className="text-[#6DBE00] text-[10px] font-semibold uppercase tracking-wider mb-0.5">فتح باب الحجز</p>
             <p className="text-white text-sm font-bold">13 سبتمبر 2026</p>
-            <p className="text-white/60 text-xs">الساعة 11:00 ص</p>
+            <p className="text-white/60 text-xs">الساعة 3:00 م</p>
           </div>
           <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
             <p className="text-[#6DBE00] text-[10px] font-semibold uppercase tracking-wider mb-0.5">موعد التوفير</p>
