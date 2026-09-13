@@ -31,9 +31,10 @@ function IPhone18Card({ product, index, onReserve }: { product: Product; index: 
 
   return (
     <div
-      className="i18c-card"
+      className="i18c-card cursor-pointer"
       style={{ animationDelay: `${0.05 * index}s` }}
       dir="rtl"
+      onClick={() => router.push(`/product/${product._id}`)}
     >
       {/* image */}
       <div className="i18c-img-wrap">
@@ -60,6 +61,12 @@ function IPhone18Card({ product, index, onReserve }: { product: Product; index: 
         </div>
       </div>
 
+      {/* hint */}
+      <div className="flex items-center justify-center gap-1 bg-gray-50 border-b border-gray-100 py-1">
+        <IoInformationCircleOutline className="text-gray-400 text-xs" />
+        <span className="text-[9px] text-gray-400">اضغط على المنتج لمعرفة التفاصيل</span>
+      </div>
+
       {/* content */}
       <div className="flex flex-col flex-1 px-3 pt-2 pb-3 gap-1.5">
         <h3 className="text-[11px] sm:text-[13px] font-bold text-gray-800 leading-snug line-clamp-2">
@@ -79,22 +86,13 @@ function IPhone18Card({ product, index, onReserve }: { product: Product; index: 
           </div>
         </div>
 
-        <div className="flex gap-1.5 mt-1">
-          <button
-            onClick={() => router.push(`/product/${product._id}`)}
-            className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#155E6F] bg-[#155E6F]/10 hover:bg-[#155E6F]/20 border border-[#155E6F]/20 rounded-xl py-2 transition"
-          >
-            <IoInformationCircleOutline className="text-sm" />
-            التفاصيل
-          </button>
-          <button
-            onClick={() => onReserve(product)}
-            className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-[#1F7A8C] hover:bg-[#155E6F] rounded-xl py-2 transition shadow-md shadow-[#1F7A8C]/30"
-          >
-            <IoCalendarOutline className="text-sm" />
-            احجز الآن
-          </button>
-        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onReserve(product); }}
+          className="w-full flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-[#1F7A8C] hover:bg-[#155E6F] rounded-xl py-2 mt-1 transition shadow-md shadow-[#1F7A8C]/30"
+        >
+          <IoCalendarOutline className="text-sm" />
+          احجز الآن
+        </button>
       </div>
     </div>
   );
@@ -130,7 +128,7 @@ export default function IPhone18Client({ products }: { products: Product[] }) {
           opacity:0;
         }
         .i18c-img-wrap {
-          position:relative; width:100%; padding-bottom:115%;
+          position:relative; width:100%; padding-bottom:80%;
           background:#fff;
           display:flex; align-items:center; justify-content:center;
           overflow:hidden;
@@ -200,7 +198,7 @@ export default function IPhone18Client({ products }: { products: Product[] }) {
         </div>
 
         {/* ── GRID ── */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-14 sm:pb-20">
+        <div className="max-w-6xl mx-auto px-2 sm:px-6 pb-14 sm:pb-20">
           {!products.length ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
               <div className="w-20 h-20 rounded-3xl bg-[#1F7A8C]/10 flex items-center justify-center text-4xl">📦</div>
@@ -210,7 +208,7 @@ export default function IPhone18Client({ products }: { products: Product[] }) {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-5">
               {products.map((p, i) => (
                 <IPhone18Card key={p._id} product={p} index={i} onReserve={handleReserve} />
               ))}
