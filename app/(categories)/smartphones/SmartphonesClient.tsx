@@ -6,7 +6,7 @@ import ProductCard from "../../components/products/ProductCard";
 import type { Product } from "../../components/products/types";
 import { IoGridOutline, IoChevronBack, IoChevronForward, IoHome } from "react-icons/io5";
 
-export default function SmartphonesClient({ initialProducts }: { initialProducts: Product[] }) {
+export default function SmartphonesClient({ initialProducts, reserveMode = false }: { initialProducts: Product[]; reserveMode?: boolean }) {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
 
@@ -95,7 +95,7 @@ export default function SmartphonesClient({ initialProducts }: { initialProducts
             <>
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
                 {products.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((p, i) => (
-                  <div key={p._id} className="card-reveal" style={{ animationDelay: `${0.04 * i}s` }}><ProductCard product={p} /></div>
+                  <div key={p._id} className="card-reveal" style={{ animationDelay: `${0.04 * i}s` }}><ProductCard product={p} reserveMode={reserveMode} /></div>
                 ))}
               </div>
               {totalPages > 1 && (

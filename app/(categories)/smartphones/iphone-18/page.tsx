@@ -1,5 +1,5 @@
 import ComingSoon from "../../../components/ComingSoon";
-import SmartphonesClient from "../SmartphonesClient";
+import IPhone18Client from "./IPhone18Client";
 import { getCachedProducts } from "../../../lib/products-cache";
 
 export const revalidate = 3600;
@@ -28,5 +28,5 @@ export default async function IPhone18Page() {
     KEYWORDS.some((kw) => p.category?.toLowerCase().includes(kw.toLowerCase()) || p.name?.toLowerCase().includes(kw.toLowerCase()))
   );
 
-  return <SmartphonesClient initialProducts={products} />;
+  return <IPhone18Client products={products} />;
 }

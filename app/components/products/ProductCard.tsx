@@ -3,10 +3,13 @@
 import { memo, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { IoCartOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation";
+import { IoCartOutline, IoCheckmarkCircleOutline, IoInformationCircleOutline, IoCalendarOutline } from "react-icons/io5";
 import { Icon } from "@iconify/react";
 import type { Product } from "./types";
 import { useCartStore } from "../../store/cartStore";
+import { isIPhone18PreOrder, usePreOrderAvailability } from "../../lib/usePreOrderAvailability";
+import PreOrderModal from "../pre-order/PreOrderModal";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -18,7 +21,7 @@ const resolveImg = (src: string) => {
   return `${API}${src.startsWith("/") ? src : "/" + src}`;
 };
 
-function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+function ProductCard({ product, priority = false, reserveMode = false }: { product: Product; priority?: boolean; reserveMode?: boolean }) {
   const { name, salePrice, discountPercent = 0, installment, inStock, color, storage, network } = product;
   const image = product.images?.[0] || product.image;
   const resolvedImage = image ? resolveImg(image) : undefined;
@@ -27,6 +30,12 @@ function ProductCard({ product, priority = false }: { product: Product; priority
   const displayPrice = hasDiscount ? salePrice! : originalPrice;
   const addItem = useCartStore((s) => s.addItem);
   const [added, setAdded] = useState(false);
+  const router = useRouter();
+  
+  // Pre-order logic
+  const isPreOrder = isIPhone18PreOrder(name);
+  const reservationStatus = usePreOrderAvailability();
+  const [preOrderOpen, setPreOrderOpen] = useState(false);
 
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,103 +48,177 @@ function ProductCard({ product, priority = false }: { product: Product; priority
     }, 800);
   }, [addItem, product]);
 
+  const cardProps = reserveMode
+    ? { onClick: undefined }
+    : { onClick: () => router.push(`/product/${product._id}`) };
+
+  const Wrapper = reserveMode
+    ? ({ children }: { children: React.ReactNode }) => (
+        <div className="group relative flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-default" dir="rtl">{children}</div>
+      )
+    : ({ children }: { children: React.ReactNode }) => (
+        <Link href={`/product/${product._id}`} className="group relative flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300" dir="rtl">{children}</Link>
+      );
+
   return (
-    <Link
-      href={`/product/${product._id}`}
-      className="group relative flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
-      dir="rtl"
-    >
-      {/* Image */}
-      <div className="relative w-full bg-gradient-to-b from-[#eef7f9] to-[#f8fcfd]" style={{ paddingBottom: "85%" }}>
-        <div className="absolute inset-0 flex items-center justify-center p-3">
-          {resolvedImage ? (
-            <Image
-              src={resolvedImage}
-              alt={name}
-              fill
-              className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              priority={priority}
-              loading={priority ? "eager" : "lazy"}
-            />
-          ) : (
-            <div className="text-5xl opacity-30">📱</div>
+    <>
+      <Wrapper>
+        {/* Image */}
+        <div className="relative w-full bg-gradient-to-b from-[#eef7f9] to-[#f8fcfd]" style={{ paddingBottom: "85%" }}>
+          <div className="absolute inset-0 flex items-center justify-center p-3">
+            {resolvedImage ? (
+              <Image
+                src={resolvedImage}
+                alt={name}
+                fill
+                className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                priority={priority}
+                loading={priority ? "eager" : "lazy"}
+              />
+            ) : (
+              <div className="text-5xl opacity-30">📱</div>
+            )}
+          </div>
+
+          {discountPercent > 0 && (
+            <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-xl shadow-md shadow-red-400/40">
+              <Icon icon="solar:tag-price-bold" width={11} />
+              {discountPercent}%-
+            </div>
           )}
+
+          <div className={`absolute top-2 left-2 flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-xl shadow-md ${
+            inStock ? "bg-emerald-500 text-white" : "bg-gray-400 text-white"
+          }`}>
+            <Icon icon={inStock ? "solar:check-circle-bold" : "solar:close-circle-bold"} width={11} />
+            {inStock ? "متوفر" : "نفذ"}
+          </div>
         </div>
 
-        {discountPercent > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-xl shadow-md shadow-red-400/40">
-            <Icon icon="solar:tag-price-bold" width={11} />
-            {discountPercent}%-
+        {/* Content */}
+        <div className="flex flex-col flex-1 px-3 pt-2 pb-3 gap-1">
+
+          <h3 className="text-[11px] sm:text-[13px] font-bold text-gray-800 leading-snug line-clamp-2 min-h-[28px]">
+            {name}
+          </h3>
+
+          {(storage || color   ) && (
+            <div className="flex flex-wrap gap-1">
+              {[
+                storage && { icon: "solar:database-bold", label: storage },
+                color && { icon: "solar:pallete-2-bold", label: color },
+                  
+              ].filter(Boolean).map((s: any) => (
+                <span key={s.label} className="flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold text-[#155E6F] bg-[#155E6F]/8 border border-[#155E6F]/15 px-1.5 py-0.5 rounded-lg">
+                  <Icon icon={s.icon} width={10} />
+                  {s.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-auto">
+            {hasDiscount && (
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-[10px] text-gray-400 line-through">{fmt(originalPrice)} ر.س</span>
+                <span className="text-[9px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-lg">
+                  وفّر {fmt(originalPrice - salePrice!)}
+                </span>
+              </div>
+            )}
+            <div className="flex items-baseline gap-1">
+              <span className="text-lg sm:text-xl font-black text-[#155E6F]">{fmt(displayPrice)}</span>
+              <span className="text-[10px] font-semibold text-[#155E6F]/70">ر.س</span>
+            </div>
           </div>
-        )}
 
-        <div className={`absolute top-2 left-2 flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-xl shadow-md ${
-          inStock ? "bg-emerald-500 text-white" : "bg-gray-400 text-white"
-        }`}>
-          <Icon icon={inStock ? "solar:check-circle-bold" : "solar:close-circle-bold"} width={11} />
-          {inStock ? "متوفر" : "نفذ"}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col flex-1 px-3 pt-2 pb-3 gap-1">
-
-        <h3 className="text-[11px] sm:text-[13px] font-bold text-gray-800 leading-snug line-clamp-2 min-h-[28px]">
-          {name}
-        </h3>
-
-        {(storage || color   ) && (
-          <div className="flex flex-wrap gap-1">
-            {[
-              storage && { icon: "solar:database-bold", label: storage },
-              color && { icon: "solar:pallete-2-bold", label: color },
-                
-            ].filter(Boolean).map((s: any) => (
-              <span key={s.label} className="flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold text-[#155E6F] bg-[#155E6F]/8 border border-[#155E6F]/15 px-1.5 py-0.5 rounded-lg">
-                <Icon icon={s.icon} width={10} />
-                {s.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-auto">
-          {hasDiscount && (
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[10px] text-gray-400 line-through">{fmt(originalPrice)} ر.س</span>
-              <span className="text-[9px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-lg">
-                وفّر {fmt(originalPrice - salePrice!)}
+          {installment?.available && (
+            <div className="flex items-center gap-1.5 bg-[#6DBE00]/10 border border-[#6DBE00]/20 rounded-xl px-2 py-1">
+              <span className="text-sm">💳</span>
+              <span className="text-[9px] sm:text-[10px] font-bold text-[#4a8a00]">
+                تقسيط {installment.downPayment ? `من ${fmt(installment.downPayment)} ر.س` : "متاح"}
               </span>
             </div>
           )}
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg sm:text-xl font-black text-[#155E6F]">{fmt(displayPrice)}</span>
-            <span className="text-[10px] font-semibold text-[#155E6F]/70">ر.س</span>
-          </div>
+
+          {reserveMode ? (
+            <div className="flex gap-1.5 mt-1">
+              <button
+                onClick={() => router.push(`/product/${product._id}`)}
+                className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#155E6F] bg-[#155E6F]/10 hover:bg-[#155E6F]/20 border border-[#155E6F]/20 rounded-xl py-2 transition"
+              >
+                <IoInformationCircleOutline className="text-sm" />
+                التفاصيل
+              </button>
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-[#1F7A8C] hover:bg-[#155E6F] rounded-xl py-2 transition shadow-md shadow-[#1F7A8C]/30"
+              >
+                <IoCalendarOutline className="text-sm" />
+                احجز الآن
+              </button>
+            </div>
+          ) : isPreOrder ? (
+            <div className="flex gap-1.5 mt-1">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push(`/product/${product._id}`);
+                }}
+                className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#155E6F] bg-[#155E6F]/10 hover:bg-[#155E6F]/20 border border-[#155E6F]/20 rounded-xl py-2 transition"
+              >
+                <IoInformationCircleOutline className="text-sm" />
+                التفاصيل
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (reservationStatus === "open") {
+                    setPreOrderOpen(true);
+                  }
+                }}
+                disabled={reservationStatus === "not_started"}
+                className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-white rounded-xl py-2 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: reservationStatus === "open" ? "linear-gradient(135deg, #1F7A8C, #155E6F)" : "#9ca3af",
+                  boxShadow: reservationStatus === "open" ? "0 4px 12px rgba(31, 122, 140, 0.3)" : "none",
+                }}
+              >
+                <IoCalendarOutline className="text-sm" />
+                {reservationStatus === "open" ? "احجز مسبقًا" : "قريبًا"}
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleAddToCart} className={`cart-btn-v2 ${added ? "cart-btn-v2-added !bg-none !bg-green-600 !shadow-green-400/40" : ""}`}>
+              <span className="cart-btn-v2-bg" />
+              <span className="relative z-10 flex items-center justify-center gap-1.5">
+                {added ? (
+                  <><IoCheckmarkCircleOutline className="text-sm" />تمت الإضافة</>
+                ) : (
+                  <><IoCartOutline className="text-sm" />أضف للسلة</>
+                )}
+              </span>
+            </button>
+          )}
         </div>
-
-        {installment?.available && (
-          <div className="flex items-center gap-1.5 bg-[#6DBE00]/10 border border-[#6DBE00]/20 rounded-xl px-2 py-1">
-            <span className="text-sm">💳</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-[#4a8a00]">
-              تقسيط {installment.downPayment ? `من ${fmt(installment.downPayment)} ر.س` : "متاح"}
-            </span>
-          </div>
-        )}
-
-        <button onClick={handleAddToCart} className={`cart-btn-v2 ${added ? "cart-btn-v2-added !bg-none !bg-green-600 !shadow-green-400/40" : ""}`}>
-          <span className="cart-btn-v2-bg" />
-          <span className="relative z-10 flex items-center justify-center gap-1.5">
-            {added ? (
-              <><IoCheckmarkCircleOutline className="text-sm" />تمت الإضافة</>
-            ) : (
-              <><IoCartOutline className="text-sm" />أضف للسلة</>
-            )}
-          </span>
-        </button>
-      </div>
-    </Link>
+      </Wrapper>
+      
+      {/* Pre-Order Modal */}
+      {isPreOrder && product.variants && product.variants.length > 0 && (
+        <PreOrderModal
+          open={preOrderOpen}
+          onClose={() => setPreOrderOpen(false)}
+          product={{
+            _id: product._id,
+            name: product.name,
+            image: product.image,
+            variants: product.variants,
+            price: originalPrice,
+          }}
+        />
+      )}
+    </>
   );
 }
 

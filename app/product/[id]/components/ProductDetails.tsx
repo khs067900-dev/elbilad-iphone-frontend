@@ -24,6 +24,7 @@ interface ProductDetailsProps {
   installment?: Product["installment"];
   description?: string;
   specs?: Product["specs"];
+  isIPhone18?: boolean;
 }
 
 type Tab = "specs" | "installment" | "description";
@@ -34,12 +35,12 @@ const tabMeta: Record<Tab, { icon: string; label: string; color: string }> = {
   installment: { icon: "solar:card-bold",          label: "التقسيط",   color: "#f59e0b" },
 };
 
-export default function ProductDetails({ installment, description, specs }: ProductDetailsProps) {
+export default function ProductDetails({ installment, description, specs, isIPhone18 = false }: ProductDetailsProps) {
   const hasSpecs = specs && Object.values(specs).some(Boolean);
 
   const tabs: { key: Tab; show: boolean }[] = [
-    { key: "specs",       show: !!hasSpecs },
-    { key: "description", show: !!description },
+    { key: "specs",       show: !!hasSpecs && !isIPhone18 },
+    { key: "description", show: !!description && !isIPhone18 },
     { key: "installment", show: !!installment?.available },
   ];
   const visibleTabs = tabs.filter((t) => t.show);

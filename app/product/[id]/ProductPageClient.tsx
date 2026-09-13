@@ -6,9 +6,12 @@ import Link from "next/link";
 import { IoArrowForward, IoShareSocial, IoHomeOutline, IoCartOutline, IoCheckmarkDoneCircle } from "react-icons/io5";
 import type { Product } from "../../components/products/types";
 import { useCartStore } from "../../store/cartStore";
+import { isIPhone18PreOrder } from "../../lib/usePreOrderAvailability";
+import PreOrderModal from "../../components/pre-order/PreOrderModal";
 import ProductImages from "./components/ProductImages";
 import ProductInfo from "./components/ProductInfo";
 import ProductDetails from "./components/ProductDetails";
+import IPhone18Sections from "./components/IPhone18Sections";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -16,9 +19,15 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
   const router = useRouter();
   const [product] = useState<Product | null>(initialProduct);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [variantImages, setVariantImages] = useState<string[] | null>(null);
   const [mobileLoading, setMobileLoading] = useState(false);
   const [mobilePopup, setMobilePopup] = useState(false);
+  const [preOrderOpen, setPreOrderOpen] = useState(false);
+  const [displayPrice, setDisplayPrice] = useState<number | null>(null);
   const addItem = useCartStore((s) => s.addItem);
+  
+  const mobilePrice = displayPrice ?? (product?.salePrice ?? product?.originalPrice ?? 0);
+  const isPreOrder = product ? isIPhone18PreOrder(product.name) : false;
 
   if (!product)
     return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-400 text-lg">المنتج غير موجود</p></div>;
@@ -36,8 +45,13 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
 
   const resolveImg = (src: string) =>
     src.startsWith("http") ? src : src.startsWith("/uploads") ? src : `${API}${src}`;
-  const merged = [...(product.images || []), ...(product.image ? [product.image] : [])];
+  const merged = variantImages ?? [...(product.images || []), ...(product.image ? [product.image] : [])];
   const allImages = [...new Set(merged)].map(resolveImg);
+
+  const handleBack = () => {
+    if (window.history.length > 1) router.back();
+    else router.push("/smartphones/iphone-18");
+  };
 
   const handleShare = async () => {
     try { await navigator.share({ title: product.name, url: window.location.href }); } catch {}
@@ -52,7 +66,7 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
             {/* Back + Breadcrumb */}
             <div className="flex items-center gap-2 min-w-0">
               <button
-                onClick={() => router.back()}
+                onClick={handleBack}
                 className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-l from-[#1a6b7d] to-[#155e6f] text-white shadow-md shadow-[#1a6b7d]/30 active:scale-95 transition-transform"
               >
                 <IoArrowForward size={18} />
@@ -86,11 +100,28 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
             </div>
             {/* Info */}
             <div className="lg:col-span-5 pdp-scale" style={{ animationDelay: ".1s" }}>
-              <ProductInfo product={product} addedToCart={addedToCart} onAddToCart={() => { addItem(product); setAddedToCart(true); }} />
+              <ProductInfo 
+                product={product} 
+                addedToCart={addedToCart} 
+                onAddToCart={() => { addItem(product); setAddedToCart(true); }}
+                isPreOrder={isPreOrder}
+                onPreOrder={() => setPreOrderOpen(true)}
+                onVariantChange={(imgs) => setVariantImages(imgs)}
+                onPriceChange={(p) => setDisplayPrice(p)}
+                isIPhone18={product.category === "ابل ايفون 18"}
+              />
             </div>
           </div>
 
-          <ProductDetails installment={product.installment} description={product.description} specs={product.specs} />
+          <ProductDetails installment={product.installment} description={product.description} specs={product.specs} isIPhone18={product.category === "ابل ايفون 18"} />
+
+          {product.category === "ابل ايفون 18" && (
+            <IPhone18Sections
+              sections={product.sections}
+              gallery={product.gallery}
+              specGroups={product.specGroups}
+            />
+          )}
         </div>
 
         {/* Mobile Floating CTA */}
@@ -108,9 +139,16 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-gray-500 truncate">{product.name}</p>
-                <p className="text-base font-black text-red-600">{(product.salePrice ?? product.originalPrice ?? 0).toLocaleString("en-US")} <span className="text-xs font-bold">ر.س</span></p>
+                <p className="text-base font-black text-red-600">{mobilePrice.toLocaleString("en-US")} <span className="text-xs font-bold">ر.س</span></p>
               </div>
-              {!addedToCart ? (
+              {isPreOrder ? (
+                <button
+                  onClick={() => setPreOrderOpen(true)}
+                  className="bg-gradient-to-l from-[#1a6b7d] to-[#155e6f] text-white font-bold text-sm px-7 py-3 rounded-xl shadow-lg shadow-[#1a6b7d]/30 active:scale-95 transition-transform flex items-center gap-2"
+                >
+                  احجز الآن
+                </button>
+              ) : !addedToCart ? (
                 <button
                   onClick={handleMobileAdd}
                   disabled={mobileLoading}
@@ -139,6 +177,21 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
           `}</style>
         </div>
       </main>
+      
+      {/* Pre-Order Modal */}
+      {isPreOrder && product && (
+        <PreOrderModal
+          open={preOrderOpen}
+          onClose={() => setPreOrderOpen(false)}
+          product={{
+            _id: product._id,
+            name: product.name,
+            image: product.image,
+            variants: product.variants,
+            price: product.originalPrice ?? product.price ?? 0,
+          }}
+        />
+      )}
     </>
   );
 }
