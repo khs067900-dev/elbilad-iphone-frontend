@@ -93,9 +93,9 @@ function DesignSection({ section }: { section: ProductSection }) {
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-16 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide py-3">
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide py-2.5">
             {content.features.map((f, i) => (
               <button key={f.id} onClick={() => { setActiveIdx(i); setSelectedColorIdx(0); }}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 ${
@@ -107,6 +107,7 @@ function DesignSection({ section }: { section: ProductSection }) {
               </button>
             ))}
           </div>
+          <p className="text-[9px] text-gray-400 pb-1.5 sm:hidden">← مرر للمزيد من الخيارات</p>
         </div>
       </div>
 
