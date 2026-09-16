@@ -68,7 +68,7 @@ export default async function Footer() {
           <h3 className="text-[#6DBE00] font-bold text-xl mb-4">روابط مهمة</h3>
           <ul className="space-y-2.5 text-sm">
             {[
-              { label: "عن مؤسسة البلاد الحديثة للإلكترونيات", href: "/about" },
+              { label: "عن مؤسسة البلاد الثابته لتقنية المعلومات ", href: "/about" },
               { label: "طرق الدفع", href: "/payment" },
               { label: "سياسة الاستبدال والاسترجاع", href: "/return-policy" },
               { label: "سياسة الخصوصية واتفاقية الاستخدام", href: "/privacy" },
