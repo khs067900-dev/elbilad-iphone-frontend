@@ -69,12 +69,22 @@ export default function ProductGrid({
       if (c.includes("ازرق") || c.includes("أزرق") || c.toLowerCase().includes("blue")) return 2;
       return 3;
     };
+    const iphone18Keywords = ["ايفون 18", "iphone 18", "آيفون 18"];
     for (const cat of Object.keys(map)) {
-      map[cat].sort((a, b) => {
-        const storageDiff = parseStorage(a.storage) - parseStorage(b.storage);
-        if (storageDiff !== 0) return storageDiff;
-        return colorOrder(a.color) - colorOrder(b.color);
-      });
+      const isIphone18 = iphone18Keywords.some((kw) => cat.toLowerCase().includes(kw.toLowerCase()));
+      if (isIphone18) {
+        map[cat].sort((a, b) => {
+          const priceA = a.salePrice ?? a.originalPrice ?? a.price ?? 0;
+          const priceB = b.salePrice ?? b.originalPrice ?? b.price ?? 0;
+          return priceA - priceB;
+        });
+      } else {
+        map[cat].sort((a, b) => {
+          const storageDiff = parseStorage(a.storage) - parseStorage(b.storage);
+          if (storageDiff !== 0) return storageDiff;
+          return colorOrder(a.color) - colorOrder(b.color);
+        });
+      }
     }
     return map;
   }, [products]);
