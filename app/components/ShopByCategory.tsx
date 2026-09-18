@@ -57,13 +57,14 @@ export default async function ShopByCategory({
     return 0;
   });
 
+  const comingSoonHrefs = new Set(COMING_SOON_CARDS.map((c) => c.href));
   const comingSoonNames = new Set(COMING_SOON_CARDS.map((c) => c.name));
 
   const categoriesWithHref = [
     ...COMING_SOON_CARDS,
     ...sorted
-      .filter((cat) => !comingSoonNames.has(cat.name))
-      .map((cat) => ({ ...cat, href: resolveHref(cat.name) })),
+      .map((cat) => ({ ...cat, href: resolveHref(cat.name) }))
+      .filter((cat) => !comingSoonHrefs.has(cat.href) && !comingSoonNames.has(cat.name)),
   ];
 
   return (
