@@ -19,7 +19,7 @@ const resolveImg = (src: string) => {
   return `${API}${src.startsWith("/") ? src : "/" + src}`;
 };
 
-function ProductCard({ product, priority = false, reserveMode = false }: { product: Product; priority?: boolean; reserveMode?: boolean }) {
+function ProductCard({ product, priority = false, reserveMode = false, largeImage = false }: { product: Product; priority?: boolean; reserveMode?: boolean; largeImage?: boolean }) {
   const { name, salePrice, discountPercent = 0, installment, inStock, color, storage, network } = product;
   const image = product.images?.[0] || product.image;
   const resolvedImage = image ? resolveImg(image) : undefined;
@@ -64,7 +64,7 @@ function ProductCard({ product, priority = false, reserveMode = false }: { produ
                 src={resolvedImage}
                 alt={name}
                 fill
-                className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+                className={`object-contain transition-transform duration-500 ${largeImage ? "scale-[1.25] group-hover:scale-[1.35]" : "p-3 group-hover:scale-105"}`}
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 priority={priority}
                 loading={priority ? "eager" : "lazy"}

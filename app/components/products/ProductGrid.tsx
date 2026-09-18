@@ -8,9 +8,12 @@ import { resolveHref } from "../../lib/resolveHref";
 
 const LIMIT = 4;
 
+const iphone18Keywords = ["ايفون 18", "iphone 18", "آيفون 18"];
+
 const CategoryRow = memo(function CategoryRow({ category, items, isFirst }: { category: string; items: Product[]; isFirst?: boolean }) {
   const visible = items.slice(0, LIMIT);
   const href = resolveHref(category);
+  const isIphone18 = iphone18Keywords.some((kw) => category.toLowerCase().includes(kw.toLowerCase()));
 
   return (
     <div className="mb-8 sm:mb-12">
@@ -30,7 +33,7 @@ const CategoryRow = memo(function CategoryRow({ category, items, isFirst }: { ca
       {/* Products Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
         {visible.map((p, i) => (
-          <ProductCard key={p._id} product={p} priority={isFirst && i === 0} />
+          <ProductCard key={p._id} product={p} priority={isFirst && i === 0} largeImage={isIphone18} />
         ))}
       </div>
     </div>
