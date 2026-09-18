@@ -123,6 +123,9 @@ export default function CategorySlider({ categories }: { categories: Category[] 
                     <p className="text-white/90 text-[10px] sm:text-sm mt-1 leading-tight font-medium">
                       {getCategoryDesc(cat.name)}
                     </p>
+                    <span className="inline-block mt-2 bg-[#6DBE00] text-white text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
+                      عرض الكل
+                    </span>
                   </div>
                 ) : (
                   <div className="absolute bottom-0 inset-x-0 p-1.5 sm:p-3">
