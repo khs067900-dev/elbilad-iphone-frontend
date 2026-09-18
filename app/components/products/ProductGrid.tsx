@@ -4,73 +4,13 @@ import Link from "next/link";
 import ProductCard from "./ProductCard";
 import type { Product } from "./types";
 import CategoryBanner from "../banner/CategoryBanner";
+import { resolveHref } from "../../lib/resolveHref";
 
 const LIMIT = 4;
 
-// map category value → page path for "عرض الكل" link
-const categoryPageMap: Record<string, string> = {
-  // English keys
-  smartphone: "/smartphones/apple-only",
-  smartphones: "/smartphones/apple-only",
-  watch: "/apple-watches/se",
-  audio: "/audio/airpods-pro",
-  speaker: "/audio/airpods-max",
-  earbuds: "/audio/samsung-buds",
-  ps5: "/playstation/ps5",
-  ps4: "/playstation/ps5-slim",
-  xbox: "/playstation/xbox-one",
-  controller: "/playstation/controllers",
-  "gaming-accessories": "/playstation/ps-accessories",
-  laptop: "/laptops/macbook-pro",
-  monitor: "/laptops/samsung-monitors",
-  tablet: "/tablets/ipad-pro",
-  powerbank: "/accessories/anker-batteries",
-  gaming: "/games/ps5-games",
-  "mice-keyboards": "/games/mice-keyboards",
-  microphone: "/games/microphones",
-  figures: "/games/figures",
-  rgb: "/games/rgb-lighting",
-  // Arabic category names from products
-  "ابل ايفون 17 برو": "/smartphones/iphone-17-pro",
-  "ابل ايفون 17 برو ماكس": "/smartphones/iphone-17-pro-max",
-  "ابل ايفون 17برو ماكس": "/smartphones/iphone-17-pro-max",
-  "ابل ايفون 17": "/smartphones/iphone-17",
-  "ابل ايفون 17 اير": "/smartphones/iphone-17-air",
-  "ابل ايفون 16 برو": "/smartphones/iphone-16-pro",
-  "ابل ايفون 16 برو ماكس": "/smartphones/iphone-16-pro-max",
-  "ابل ايفون 16": "/smartphones/iphone-16",
-  "ابل ايفون 16 بلس": "/smartphones/iphone-16-plus",
-  "ابل ايفون 15 برو": "/smartphones/iphone-15-pro",
-  "ابل ايفون 15 برو ماكس": "/smartphones/iphone-15-pro-max",
-  "ابل ايفون 15": "/smartphones/iphone-15",
-  "ابل ايفون 15 بلس": "/smartphones/iphone-15-plus",
-  "ابل ايفون 14 برو": "/smartphones/iphone-14-pro",
-  "ابل ايفون 14 برو ماكس": "/smartphones/iphone-14-pro-max",
-  "ابل ايفون 14": "/smartphones/iphone-14",
-  "ابل ايفون 14 بلس": "/smartphones/iphone-14-plus",
-  "ابل ايفون 13 برو ماكس": "/smartphones/iphone-13-pro-max",
-  "سامسونج جالكسي": "/smartphones/samsung-s25-ultra",
-  "سامسونج جالاكسي": "/smartphones/samsung-s25-ultra",
-  "سامسونج جالاكسي S26": "/smartphones/samsung-s26-ultra",
-  "سامسونج جالاكسي S26 الترا": "/smartphones/samsung-s26-ultra",
-  "سامسونج جالاكسي اس 26 الترا": "/smartphones/samsung-s26-ultra",
-  "سامسونج جالاكسي S25": "/smartphones/samsung-s25-ultra",
-  "سامسونج جالاكسي S25 الترا": "/smartphones/samsung-s25-ultra",
-  "ساعات ابل": "/apple-watches/se",
-  "سماعات ابل": "/audio/airpods-pro",
-  "بلاي ستيشن": "/playstation/ps5",
-  "بلاي ستيشن وملحقاته": "/playstation/ps5",
-  "بلاستيشن وملحقاته": "/playstation",
-  "بلاستيشن": "/playstation",
-  "لابتوبات": "/laptops/macbook-pro",
-  "ايبادات": "/tablets/ipad-pro",
-  "ملحقات": "/accessories/anker-batteries",
-  "العاب": "/games/ps5-games",
-};
-
 const CategoryRow = memo(function CategoryRow({ category, items, isFirst }: { category: string; items: Product[]; isFirst?: boolean }) {
   const visible = items.slice(0, LIMIT);
-  const href = categoryPageMap[category] ?? categoryPageMap[category.toLowerCase()] ?? `/search?q=${encodeURIComponent(category)}`;
+  const href = resolveHref(category);
 
   return (
     <div className="mb-8 sm:mb-12">
