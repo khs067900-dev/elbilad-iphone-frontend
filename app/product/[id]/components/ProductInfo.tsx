@@ -1,30 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { IoCartOutline, IoCheckmarkCircle, IoShieldCheckmark, IoTimeOutline, IoCarOutline, IoCheckmarkDoneCircle, IoFlash, IoStorefront, IoCalendarOutline } from "react-icons/io5";
+import { IoCartOutline, IoCheckmarkCircle, IoShieldCheckmark, IoTimeOutline, IoCarOutline, IoCheckmarkDoneCircle, IoFlash, IoStorefront } from "react-icons/io5";
 import type { Product } from "../../../components/products/types";
-import { usePreOrderAvailability } from "../../../lib/usePreOrderAvailability";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
 interface ProductInfoProps {
   product: Product;
   addedToCart: boolean;
-  onAddToCart: () => void;
-  isPreOrder?: boolean;
-  onPreOrder?: () => void;
+  onAddToCart: (updatedProduct: Product) => void;
   onVariantChange?: (images: string[]) => void;
   onPriceChange?: (price: number) => void;
+  onNameChange?: (name: string) => void;
+  onProductChange?: (updatedProduct: Product) => void;
   isIPhone18?: boolean;
 }
 
-export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOrder = false, onPreOrder, onVariantChange, onPriceChange, isIPhone18 = false }: ProductInfoProps) {
+export default function ProductInfo({ product, addedToCart, onAddToCart, onVariantChange, onPriceChange, onNameChange, onProductChange, isIPhone18 = false }: ProductInfoProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
-  const reservationStatus = usePreOrderAvailability();
-
   const hasVariants = product.variants && product.variants.length > 0;
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [selectedStorage, setSelectedStorage] = useState(
@@ -48,7 +45,21 @@ export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOr
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onAddToCart();
+      
+      // إنشاء نسخة محدثة من المنتج مع اللون والسعة والسعر المختارين
+      const updatedProduct = {
+        ...product,
+        name: displayName,
+        color: activeVariant?.color || product.color,
+        storage: selectedStorage || product.storage,
+        originalPrice: displayOriginal,
+        salePrice: displayPrice,
+        price: displayPrice,
+        image: activeVariant?.images?.[0] || product.image,
+        images: activeVariant?.images || product.images,
+      };
+      
+      onAddToCart(updatedProduct);
       setShowPopup(true);
       setTimeout(() => setShowPopup(false), 3000);
     }, 600);
@@ -60,15 +71,49 @@ export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOr
   const originalPrice = hasVariants ? displayOriginal : (product.originalPrice ?? 0);
   const hasDiscount = salePrice != null && salePrice !== originalPrice;
 
+  // بناء الاسم الديناميكي بناءً على اللون والسعة المختارين
+  const displayName = hasVariants && activeVariant
+    ? (() => {
+        // استخراج الجزء الأساسي من الاسم (قبل أول سعة أو لون)
+        const baseName = name.split(/،\s*\d+\s*(جيجابايت|GB|تيرابايت|TB)/i)[0];
+        return `${baseName}، ${selectedStorage}، ${activeVariant.color}`;
+      })()
+    : name;
+
+  // تحديث الاسم في الـ parent component عند تغييره
+  useEffect(() => {
+    if (onNameChange) {
+      onNameChange(displayName);
+    }
+  }, [displayName, onNameChange]);
+
+  // تحديث المنتج الكامل في الـ parent component عند أي تغيير
+  useEffect(() => {
+    if (onProductChange && hasVariants && activeVariant) {
+      const updatedProduct = {
+        ...product,
+        name: displayName,
+        color: activeVariant.color,
+        storage: selectedStorage,
+        originalPrice: displayOriginal,
+        salePrice: displayPrice,
+        price: displayPrice,
+        image: activeVariant.images?.[0] || product.image,
+        images: activeVariant.images || product.images,
+      };
+      onProductChange(updatedProduct);
+    }
+  }, [displayName, selectedStorage, activeVariant, displayPrice, displayOriginal, onProductChange, hasVariants]);
+
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
       {/* Price Card */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg shadow-black/[.04] border border-gray-100/80">
         {/* Stock */}
         <div className="flex items-center justify-between mb-4">
-          <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg ${isIPhone18 ? "bg-amber-50 text-amber-600" : inStock ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isIPhone18 ? "bg-amber-500" : inStock ? "bg-emerald-500" : "bg-red-500"}`} />
-            {isIPhone18 ? "قريباً" : inStock ? "متوفر الآن" : "غير متوفر"}
+          <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg ${inStock ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${inStock ? "bg-emerald-500" : "bg-red-500"}`} />
+            {inStock ? "متوفر الآن" : "غير متوفر"}
           </div>
           {brand && (
             <span className="text-[10px] sm:text-xs font-bold text-[#1F7A8C] bg-[#1F7A8C]/8 px-3 py-1.5 rounded-lg">{brand}</span>
@@ -76,7 +121,7 @@ export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOr
         </div>
 
         {/* Name */}
-        <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-gray-900 leading-relaxed mb-3">{name}</h2>
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-gray-900 leading-relaxed mb-3">{displayName}</h2>
 
         {/* Tags */}
         {!hasVariants && (color || storage || network) && (
@@ -181,15 +226,12 @@ export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOr
 
       {/* Features */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-        {(isIPhone18 ? [
-          { icon: IoCarOutline, label: "توصيل مجاني", sub: null, accent: "#1F7A8C" },
-          { icon: IoShieldCheckmark, label: "ضمان حاسبات العرب", sub: "سنتين", accent: "#0d4a5e" },
-        ] : [
+        {[
           { icon: IoCarOutline, label: freeDelivery ? "توصيل مجاني" : "توصيل مدفوع", sub: deliveryTime, accent: "#1F7A8C" },
           { icon: IoShieldCheckmark, label: product.category === "بلاستيشن وملحقاته" ? "ضمان الالكترونيات الحديثه" : "ضمان حاسبات العرب", sub: "سنتين", accent: "#0d4a5e" },
           { icon: IoStorefront, label: inStock ? "متوفر بالمخزون" : "غير متوفر", sub: null, accent: inStock ? "#16a34a" : "#dc2626" },
           { icon: IoTimeOutline, label: "شحن سريع", sub: "خلال 24-48 ساعة", accent: "#7c3aed" },
-        ]).map((f, i) => (
+        ].map((f, i) => (
           <div key={i} className="bg-white rounded-2xl p-3.5 sm:p-4 shadow-sm border border-gray-100/80 flex items-center gap-3 hover:shadow-md hover:border-gray-200 transition-all">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${f.accent}12` }}>
               <f.icon size={18} style={{ color: f.accent }} />
@@ -214,25 +256,6 @@ export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOr
           </div>
         )}
 
-        {isPreOrder ? (
-          <button
-            onClick={onPreOrder}
-            disabled={reservationStatus === "not_started"}
-            className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              background: reservationStatus === "open" 
-                ? "linear-gradient(135deg, #1F7A8C, #155E6F)" 
-                : "#9ca3af",
-              color: "#fff",
-              boxShadow: reservationStatus === "open" 
-                ? "0 8px 24px rgba(31, 122, 140, 0.35)" 
-                : "none",
-            }}
-          >
-            <IoCalendarOutline size={22} />
-            {reservationStatus === "open" ? "احجز مسبقًا الآن" : "الحجز يبدأ قريبًا"}
-          </button>
-        ) : (
           <button
             onClick={handleAdd}
             disabled={loading || addedToCart}
@@ -252,7 +275,6 @@ export default function ProductInfo({ product, addedToCart, onAddToCart, isPreOr
               )}
             </span>
           </button>
-        )}
 
       </div>
     </div>

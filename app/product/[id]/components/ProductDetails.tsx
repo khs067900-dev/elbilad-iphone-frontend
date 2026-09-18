@@ -25,22 +25,67 @@ interface ProductDetailsProps {
   description?: string;
   specs?: Product["specs"];
   isIPhone18?: boolean;
+  specGroups?: { group: string; items: { key: string; value: string }[] }[];
 }
 
-type Tab = "specs" | "installment" | "description";
+type Tab = "specs" | "installment" | "description" | "performance";
 
 const tabMeta: Record<Tab, { icon: string; label: string; color: string }> = {
   specs:       { icon: "solar:list-bold",          label: "المواصفات", color: "#1F7A8C" },
   description: { icon: "solar:document-text-bold", label: "الوصف",     color: "#6DBE00" },
   installment: { icon: "solar:card-bold",          label: "التقسيط",   color: "#f59e0b" },
+  performance: { icon: "solar:cpu-bolt-bold",       label: "الأداء",    color: "#1F7A8C" },
 };
 
-export default function ProductDetails({ installment, description, specs, isIPhone18 = false }: ProductDetailsProps) {
+// Component for expandable spec item
+function SpecItem({ iconName, label, value }: { iconName: string; label: string; value: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldTruncate = value.length > 100;
+  const displayValue = shouldTruncate && !isExpanded ? value.substring(0, 100) + "..." : value;
+
+  return (
+    <div className="group relative bg-white hover:bg-gradient-to-l hover:from-[#f0fdf9] hover:to-white transition-all duration-300 rounded-xl p-4 border border-gray-100 hover:border-[#155E6F]/20 hover:shadow-sm">
+      <div className="flex items-start gap-3">
+        {/* Icon */}
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#155E6F]/10 to-[#1F7A8C]/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+          <Icon icon={iconName} width={20} className="text-[#1F7A8C]" />
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-gray-400 mb-1.5">{label}</p>
+          <p className="text-sm font-semibold text-gray-800 leading-relaxed break-words">
+            {displayValue}
+          </p>
+          
+          {/* Read More Button */}
+          {shouldTruncate && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="mt-2 flex items-center gap-1.5 text-xs font-bold text-[#1F7A8C] hover:text-[#155E6F] transition-colors"
+            >
+              <span>{isExpanded ? "عرض أقل" : "اقرأ المزيد"}</span>
+              <Icon 
+                icon={isExpanded ? "solar:alt-arrow-up-bold" : "solar:alt-arrow-down-bold"} 
+                width={14}
+                className="transition-transform duration-200"
+              />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductDetails({ installment, description, specs, isIPhone18 = false, specGroups }: ProductDetailsProps) {
   const hasSpecs = specs && Object.values(specs).some(Boolean);
+  const performanceGroup = specGroups?.find((g) => g.group === "الأداء");
 
   const tabs: { key: Tab; show: boolean }[] = [
     { key: "specs",       show: !!hasSpecs && !isIPhone18 },
     { key: "description", show: !!description && !isIPhone18 },
+    { key: "performance", show: false },
     { key: "installment", show: !!installment?.available },
   ];
   const visibleTabs = tabs.filter((t) => t.show);
@@ -79,28 +124,39 @@ export default function ProductDetails({ installment, description, specs, isIPho
         {active === "specs" && hasSpecs && (
           <div>
             {/* header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-gradient-to-l from-[#f0fdf9] to-white">
-              <div className="w-9 h-9 rounded-xl bg-[#155E6F]/10 flex items-center justify-center">
-                <Icon icon="solar:list-bold" width={18} className="text-[#155E6F]" />
-              </div>
-              <div>
-                <p className="text-sm font-extrabold text-gray-800">المواصفات التقنية</p>
-                <p className="text-[11px] text-gray-400">تفاصيل كاملة للمنتج</p>
+            <div className="relative overflow-hidden px-5 py-5 border-b border-gray-100 bg-gradient-to-l from-[#e6f7fa] via-[#f0fdf9] to-white">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#155E6F]/5 rounded-full blur-3xl"></div>
+              <div className="relative flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#155E6F] to-[#1F7A8C] flex items-center justify-center shadow-lg shadow-[#155E6F]/20">
+                  <Icon icon="solar:list-bold" width={22} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-base font-black text-gray-800">المواصفات التقنية</p>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">تفاصيل شاملة ومواصفات دقيقة</p>
+                </div>
               </div>
             </div>
-            {/* rows */}
-            <div className="divide-y divide-gray-50">
+            
+            {/* specs grid */}
+            <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 bg-gradient-to-b from-gray-50/50 to-white">
               {specLabels.map(([key, label, iconName]) =>
                 specs[key] ? (
-                  <div key={key} className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#f8fafb] transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-[#155E6F]/8 flex items-center justify-center shrink-0">
-                      <Icon icon={iconName} width={15} className="text-[#1F7A8C]" />
-                    </div>
-                    <span className="text-[11px] sm:text-xs text-gray-400 w-24 sm:w-32 shrink-0 font-semibold">{label}</span>
-                    <span className="text-xs sm:text-sm text-gray-800 flex-1 font-semibold leading-snug">{specs[key]}</span>
-                  </div>
+                  <SpecItem
+                    key={key}
+                    iconName={iconName}
+                    label={label}
+                    value={specs[key]!}
+                  />
                 ) : null
               )}
+            </div>
+            
+            {/* Footer decoration */}
+            <div className="px-5 py-4 bg-gradient-to-l from-[#f0fdf9] to-white border-t border-gray-100">
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                <Icon icon="solar:shield-check-bold" width={16} className="text-[#1F7A8C]" />
+                <span className="font-semibold">جميع المواصفات معتمدة من الشركة المصنعة</span>
+              </div>
             </div>
           </div>
         )}
@@ -145,6 +201,11 @@ export default function ProductDetails({ installment, description, specs, isIPho
             </div>
           );
         })()}
+
+        {/* ── Performance ── */}
+        {active === "performance" && performanceGroup && (
+          <div className="p-4 sm:p-6 text-center text-gray-400 text-sm">لا توجد بيانات</div>
+        )}
 
         {/* ── Installment ── */}
         {active === "installment" && installment?.available && (

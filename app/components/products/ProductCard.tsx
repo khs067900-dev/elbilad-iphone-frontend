@@ -4,12 +4,10 @@ import { memo, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { IoCartOutline, IoCheckmarkCircleOutline, IoInformationCircleOutline, IoCalendarOutline } from "react-icons/io5";
+import { IoCartOutline, IoCheckmarkCircleOutline, IoInformationCircleOutline } from "react-icons/io5";
 import { Icon } from "@iconify/react";
 import type { Product } from "./types";
 import { useCartStore } from "../../store/cartStore";
-import { isIPhone18PreOrder, usePreOrderAvailability } from "../../lib/usePreOrderAvailability";
-import PreOrderModal from "../pre-order/PreOrderModal";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -32,11 +30,6 @@ function ProductCard({ product, priority = false, reserveMode = false }: { produ
   const [added, setAdded] = useState(false);
   const router = useRouter();
   
-  // Pre-order logic
-  const isPreOrder = isIPhone18PreOrder(name);
-  const reservationStatus = usePreOrderAvailability();
-  const [preOrderOpen, setPreOrderOpen] = useState(false);
-
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     addItem(product);
@@ -155,38 +148,7 @@ function ProductCard({ product, priority = false, reserveMode = false }: { produ
                 onClick={handleAddToCart}
                 className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-[#1F7A8C] hover:bg-[#155E6F] rounded-xl py-2 transition shadow-md shadow-[#1F7A8C]/30"
               >
-                <IoCalendarOutline className="text-sm" />
-                احجز الآن
-              </button>
-            </div>
-          ) : isPreOrder ? (
-            <div className="flex gap-1.5 mt-1">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  router.push(`/product/${product._id}`);
-                }}
-                className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#155E6F] bg-[#155E6F]/10 hover:bg-[#155E6F]/20 border border-[#155E6F]/20 rounded-xl py-2 transition"
-              >
-                <IoInformationCircleOutline className="text-sm" />
-                التفاصيل
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (reservationStatus === "open") {
-                    setPreOrderOpen(true);
-                  }
-                }}
-                disabled={reservationStatus === "not_started"}
-                className="flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold text-white rounded-xl py-2 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  background: reservationStatus === "open" ? "linear-gradient(135deg, #1F7A8C, #155E6F)" : "#9ca3af",
-                  boxShadow: reservationStatus === "open" ? "0 4px 12px rgba(31, 122, 140, 0.3)" : "none",
-                }}
-              >
-                <IoCalendarOutline className="text-sm" />
-                {reservationStatus === "open" ? "احجز مسبقًا" : "قريبًا"}
+                أضف للسلة
               </button>
             </div>
           ) : (
@@ -204,20 +166,7 @@ function ProductCard({ product, priority = false, reserveMode = false }: { produ
         </div>
       </Wrapper>
       
-      {/* Pre-Order Modal */}
-      {isPreOrder && product.variants && product.variants.length > 0 && (
-        <PreOrderModal
-          open={preOrderOpen}
-          onClose={() => setPreOrderOpen(false)}
-          product={{
-            _id: product._id,
-            name: product.name,
-            image: product.image,
-            variants: product.variants,
-            price: originalPrice,
-          }}
-        />
-      )}
+
     </>
   );
 }

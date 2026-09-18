@@ -27,8 +27,8 @@ function Reveal({ children, delay = 0, className = "" }: {
   return (
     <div ref={ref} className={className} style={{
       opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(24px)",
-      transition: `opacity .6s ease ${delay}s, transform .6s ease ${delay}s`,
+      transform: visible ? "translateY(0)" : "translateY(32px)",
+      transition: `opacity .7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform .7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
     }}>
       {children}
     </div>
@@ -37,33 +37,49 @@ function Reveal({ children, delay = 0, className = "" }: {
 
 function SectionDivider() {
   return (
-    <div className="w-full flex items-center justify-center py-6">
-      <div className="w-16 h-1 rounded-full bg-gradient-to-r from-[#1F7A8C]/30 to-transparent" />
-      <div className="w-2 h-2 rounded-full bg-[#1F7A8C]/40 mx-3" />
-      <div className="w-16 h-1 rounded-full bg-gradient-to-l from-[#1F7A8C]/30 to-transparent" />
+    <div className="w-full flex items-center justify-center py-8 sm:py-12">
+      <div className="flex items-center gap-3">
+        <div className="w-12 sm:w-20 h-[2px] rounded-full bg-gradient-to-r from-transparent via-[#1F7A8C]/40 to-[#1F7A8C]/60" />
+        <div className="relative">
+          <div className="w-2 h-2 rounded-full bg-[#1F7A8C]/50 animate-pulse" />
+          <div className="absolute inset-0 w-2 h-2 rounded-full bg-[#1F7A8C]/30 animate-ping" />
+        </div>
+        <div className="w-12 sm:w-20 h-[2px] rounded-full bg-gradient-to-l from-transparent via-[#1F7A8C]/40 to-[#1F7A8C]/60" />
+      </div>
     </div>
   );
 }
 
 function ExpandableText({ title, desc }: { title: string; desc: string }) {
-  const [expanded, setExpanded] = useState(false);
   return (
-    <>
-      <h4 className="text-sm sm:text-lg font-black text-white mb-1 drop-shadow-lg">{title}</h4>
+    <div>
+      {title && <h4 className="text-sm sm:text-lg font-black text-white mb-1.5 leading-tight drop-shadow-lg">{title}</h4>}
       {desc && (
-        <>
-          <p className={`text-[10px] sm:text-sm text-gray-200 leading-relaxed drop-shadow-md transition-all ${
-            expanded ? "" : "line-clamp-2"
-          }`}>{desc}</p>
-          <button
-            onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
-            className="mt-1.5 text-[10px] sm:text-xs font-bold text-[#4dd0e8] hover:text-white transition-colors"
-          >
-            {expanded ? "عرض أقل ↑" : "عرض المزيد ↓"}
-          </button>
-        </>
+        <p className="text-xs sm:text-sm text-white/90 leading-relaxed drop-shadow-md line-clamp-3">
+          {desc}
+        </p>
       )}
-    </>
+    </div>
+  );
+}
+
+function ExpandableTextDark({ desc }: { desc: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsExpansion = desc && desc.length > 150;
+  return (
+    <div>
+      <p className={`text-xs sm:text-sm text-gray-600 leading-relaxed ${!expanded && needsExpansion ? "line-clamp-3" : ""}`}>
+        {desc}
+      </p>
+      {needsExpansion && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
+          className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#1F7A8C] hover:text-[#155E6F] transition-colors"
+        >
+          {expanded ? <>عرض أقل <span>▲</span></> : <>عرض المزيد <span>▼</span></>}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -81,66 +97,65 @@ function DesignSection({ section }: { section: ProductSection }) {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const feature = content.features[activeIdx];
   const currentImage = feature.colors?.[selectedColorIdx]?.image ?? feature.image;
+  const currentTitle = feature.colors?.[selectedColorIdx]?.title ?? feature.title;
 
   return (
     <section className="w-full bg-white" dir="rtl">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-14 pb-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-10 sm:pt-14 pb-6">
         <Reveal>
-          <p className="text-xs font-black tracking-[0.18em] uppercase text-[#1F7A8C] mb-3">{section.title}</p>
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">نظرة عن قرب</h2>
-          <p className="text-sm text-gray-500 max-w-xl leading-relaxed">كل تفصيلة صُممت بعناية لتمنحك تجربة لا مثيل لها</p>
+          <h2 className="text-xl sm:text-3xl font-black text-gray-900 mb-6">{section.title}</h2>
         </Reveal>
-      </div>
 
-      {/* Tabs */}
-      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8">
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide py-2.5">
+        {/* Tabs */}
+        <Reveal delay={0.05}>
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 mb-6">
             {content.features.map((f, i) => (
-              <button key={f.id} onClick={() => { setActiveIdx(i); setSelectedColorIdx(0); }}
+              <button
+                key={f.id}
+                onClick={() => { setActiveIdx(i); setSelectedColorIdx(0); }}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 ${
                   i === activeIdx
-                    ? "bg-[#1F7A8C] text-white shadow-sm"
-                    : "text-gray-500 hover:text-[#1F7A8C] hover:bg-[#1F7A8C]/8"
-                }`}>
+                    ? "bg-[#1F7A8C] text-white shadow-md"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
                 {f.label}
               </button>
             ))}
           </div>
-          <p className="text-[9px] text-gray-400 pb-1.5 sm:hidden">← مرر للمزيد من الخيارات</p>
-        </div>
-      </div>
+        </Reveal>
 
-      {/* Image with overlay text */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
-        <Reveal delay={0.05}>
-          <div className="relative rounded-3xl overflow-hidden shadow-lg" style={{ aspectRatio: "4/3" }}>
+        {/* Card: image as background + text overlay */}
+        <Reveal delay={0.1}>
+          <div className="relative rounded-2xl overflow-hidden shadow-lg" style={{ aspectRatio: "16/10" }}>
             <Image
               key={currentImage}
               src={currentImage}
               alt={feature.label}
               fill
-              className="object-cover transition-opacity duration-500"
+              className="object-cover transition-all duration-500"
               sizes="(max-width:1024px) 100vw, 1200px"
               priority
             />
+            {/* gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 right-0 left-0 p-3 sm:p-8">
-              <span className="inline-block text-[9px] sm:text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-full bg-[#1F7A8C] text-white mb-2">
-                {feature.label}
-              </span>
-              <h3 className="text-xs sm:text-lg font-bold text-white leading-snug max-w-2xl drop-shadow-md">
-                {feature.colors?.[selectedColorIdx]?.title ?? feature.title}
+
+            {/* bottom overlay content */}
+            <div className="absolute bottom-0 right-0 left-0 p-5 sm:p-8">
+              <h3 className="text-sm sm:text-lg font-black text-white leading-snug mb-3 drop-shadow-lg">
+                {currentTitle}
               </h3>
               {feature.colors && (
-                <div className="flex gap-2 mt-3 flex-wrap">
+                <div className="flex gap-2 flex-wrap">
                   {feature.colors.map((c, idx) => (
                     <button
-                      key={c.name}
+                      key={`${c.name}-${idx}`}
                       onClick={() => setSelectedColorIdx(idx)}
                       title={c.name}
-                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition-all ${
-                        idx === selectedColorIdx ? "border-white scale-110 shadow-lg ring-2 ring-[#1F7A8C]" : "border-white/50 hover:border-white"
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
+                        idx === selectedColorIdx
+                          ? "ring-2 ring-white ring-offset-1 ring-offset-black/30 scale-110"
+                          : "ring-1 ring-white/50 hover:scale-110"
                       }`}
                       style={{ background: c.colorCode }}
                     />
@@ -169,35 +184,34 @@ function CameraSection({ section }: { section: ProductSection }) {
     proVideo: { title: string; items: { image: string; label: string }[] };
   };
   const [activeZoom, setActiveZoom] = useState(0);
-  const [activePhoto, setActivePhoto] = useState(0);
 
   return (
-    <section className="w-full bg-[#f8fafc]" dir="rtl">
+    <section className="w-full bg-gradient-to-b from-gray-50 to-white" dir="rtl">
 
-      {/* Hero - صورة كاملة مع نص */}
-      <div className="relative w-full" style={{ aspectRatio: "16/9", minHeight: "320px" }}>
-        <div className="absolute inset-0">
-          <Image src={content.hero.image} alt="camera" fill className="object-cover" sizes="100vw" priority />
-          <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/60 to-black/30" />
-        </div>
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-10 py-10 sm:py-20 flex items-center w-full h-full absolute inset-0">
-          <div className="max-w-2xl">
-            <Reveal>
-              <p className="text-[10px] sm:text-xs font-black tracking-[0.18em] uppercase text-[#4dd0e8] mb-2">{section.title}</p>
-              <h2 className="text-lg sm:text-3xl font-black text-white leading-tight mb-3">{section.subtitle}</h2>
-              <p className="text-gray-200 text-xs sm:text-base leading-relaxed mb-6">{content.hero.description}</p>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <div className="flex gap-3 flex-wrap">
-                {content.hero.stats.map((s, i) => (
-                  <div key={i} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 min-w-[90px]">
-                    <p className="text-xl sm:text-3xl font-black text-[#4dd0e8]">{s.value}</p>
-                    <p className="text-[9px] sm:text-[10px] text-gray-300 mt-1 leading-tight">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
+      {/* Hero */}
+      <div className="relative w-full" style={{ minHeight: "220px", aspectRatio: "16/9" }}>
+        <Image src={content.hero.image} alt="camera" fill className="object-cover" sizes="100vw" priority />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20" />
+        <div className="absolute inset-0 flex flex-col justify-end px-4 sm:px-10 py-5 sm:py-12 max-w-6xl mx-auto">
+          <Reveal>
+            <span className="inline-block text-[10px] font-black tracking-widest uppercase text-[#4dd0e8] mb-2 px-3 py-1 rounded-full bg-[#4dd0e8]/10 border border-[#4dd0e8]/30">
+              {section.title}
+            </span>
+            <h2 className="text-base sm:text-3xl font-black text-white leading-tight mb-2 sm:mb-4">
+              {section.subtitle}
+            </h2>
+            <ExpandableText title="" desc={content.hero.description} />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-6">
+              {content.hero.stats.map((s, i) => (
+                <div key={i} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2.5 sm:px-5 sm:py-4">
+                  <p className="text-lg sm:text-3xl font-black text-[#4dd0e8] mb-0.5">{s.value}</p>
+                  <p className="text-[10px] sm:text-xs text-white/75 leading-tight font-medium">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </div>
 
@@ -205,178 +219,65 @@ function CameraSection({ section }: { section: ProductSection }) {
 
       {/* Zoom Levels */}
       {content.zoomLevels?.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-14">
           <Reveal>
-            <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-1 text-center">فتحة العدسة المتغيرة</h3>
-            <p className="text-sm text-gray-500 text-center mb-8">تكيف تلقائي لأفضل أداء في كل الظروف</p>
+            <div className="text-center mb-5 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-black text-gray-900 mb-1">
+                فتحة العدسة المتغيرة
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-500">
+                تكيف تلقائي لأفضل أداء في كل الظروف
+              </p>
+            </div>
           </Reveal>
-          <div className="flex gap-2 justify-center flex-wrap mb-8">
+          
+          <div className="flex gap-2 flex-wrap justify-center mb-6 sm:mb-10">
             {content.zoomLevels.map((z, i) => (
-              <button key={z.label} onClick={() => setActiveZoom(i)}
-                className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all duration-200 ${
+              <button
+                key={z.label}
+                onClick={() => setActiveZoom(i)}
+                className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${
                   i === activeZoom
                     ? "bg-[#1F7A8C] text-white shadow-md"
-                    : "bg-white text-gray-600 border border-gray-200 hover:border-[#1F7A8C] hover:text-[#1F7A8C]"
-                }`}>
+                    : "bg-white text-gray-700 border border-gray-200 hover:border-[#1F7A8C] hover:text-[#1F7A8C]"
+                }`}
+              >
                 {z.label}
               </button>
             ))}
           </div>
-          <Reveal delay={0.05}>
-            <div className="relative rounded-3xl overflow-hidden shadow-xl max-w-3xl mx-auto" style={{ aspectRatio: "4/3" }}>
+          
+          <Reveal delay={0.1}>
+            <div className="relative rounded-2xl overflow-hidden shadow-lg" style={{ aspectRatio: "4/3" }}>
               <Image
+                key={activeZoom}
                 src={content.zoomLevels[activeZoom].image}
                 alt={content.zoomLevels[activeZoom].label}
-                fill className="object-cover transition-all duration-500"
-                sizes="(max-width:768px) 100vw, 900px"
+                fill
+                className="object-cover transition-all duration-500"
+                sizes="100vw"
               />
-              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-xl">
-                <span className="text-white font-black text-sm">{content.zoomLevels[activeZoom].label}</span>
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-xl">
+                <span className="text-white font-bold text-xs flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4dd0e8] animate-pulse" />
+                  {content.zoomLevels[activeZoom].label}
+                </span>
               </div>
             </div>
           </Reveal>
+          
           {content.zoomFooter && (
-            <Reveal delay={0.1}>
-              <p className="text-gray-500 text-sm text-center mt-6 max-w-xl mx-auto leading-relaxed">{content.zoomFooter.text}</p>
+            <Reveal delay={0.15}>
+              <div className="mt-8 text-center">
+                <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed px-4">
+                  {content.zoomFooter.text}
+                </p>
+              </div>
             </Reveal>
           )}
         </div>
       )}
 
-      <SectionDivider />
-
-      {/* Lenses */}
-      {content.lensesCard && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
-          <Reveal>
-            <h3 className="text-xl sm:text-2xl font-black text-gray-900 text-center mb-8">ثلاث عدسات. إمكانيات لا حدود لها</h3>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <div className="overflow-hidden rounded-2xl border border-gray-100">
-              <table className="w-full text-right">
-                <thead>
-                  <tr className="bg-[#1F7A8C] text-white">
-                    <th className="px-4 sm:px-6 py-3 text-xs font-black">العدسة</th>
-                    <th className="px-4 sm:px-6 py-3 text-xs font-black">الموديل</th>
-                    <th className="px-4 sm:px-6 py-3 text-xs font-black hidden sm:table-cell">المواصفات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {content.lensesCard.lenses.map((lens, i) => (
-                    <tr key={lens.name} className={`border-b border-gray-100 last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-[#f8fafc]"}` }>
-                      <td className="px-4 sm:px-6 py-4 align-top">
-                        <span className="text-xs sm:text-sm font-black text-[#1F7A8C]">{lens.name}</span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 align-top">
-                        <span className="text-xs sm:text-sm font-bold text-gray-800">{lens.model}</span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 align-top hidden sm:table-cell">
-                        <ul className="space-y-1">
-                          {lens.specs.map((s, j) => (
-                            <li key={j} className="flex items-start gap-2 text-xs text-gray-600">
-                              <span className="text-[#1F7A8C] shrink-0">•</span>
-                              <span>{s}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Reveal>
-        </div>
-      )}
-
-      <SectionDivider />
-
-      {/* Pro Photos */}
-      {content.proPhotos && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
-          <Reveal>
-            <h3 className="text-xl sm:text-2xl font-black text-gray-900 text-center mb-10">{content.proPhotos.title}</h3>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <div className="relative rounded-3xl overflow-hidden shadow-xl mb-5" style={{ aspectRatio: "4/3" }}>
-              <Image
-                src={content.proPhotos.items[activePhoto].image}
-                alt="" fill
-                className="object-cover transition-all duration-500"
-                sizes="100vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="absolute bottom-0 right-0 left-0 p-3 sm:p-8">
-                {(() => {
-                  const parts = content.proPhotos.items[activePhoto].label.split(".");
-                  const title = parts[0];
-                  const desc = parts.slice(1).join(".").trim();
-                  return <ExpandableText title={title} desc={desc} />;
-                })()}
-              </div>
-            </div>
-          </Reveal>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-            {content.proPhotos.items.map((item, i) => (
-              <button key={i} onClick={() => setActivePhoto(i)}
-                className={`relative rounded-xl overflow-hidden transition-all duration-200 ${
-                  i === activePhoto ? "ring-2 ring-[#1F7A8C] scale-105" : "hover:scale-105 opacity-70 hover:opacity-100"
-                }`} style={{ aspectRatio: "1/1", minHeight: "64px" }}>
-                <Image src={item.image} alt="" fill className="object-cover" sizes="12vw" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <SectionDivider />
-
-      {/* Video */}
-      {content.video && (
-        <div className="relative w-full" style={{ aspectRatio: "16/9", minHeight: "280px" }}>
-          <div className="absolute inset-0">
-            <Image src={content.video.image} alt="video" fill className="object-cover" sizes="100vw" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
-          </div>
-          <div className="absolute inset-0 max-w-6xl mx-auto px-4 sm:px-10 py-8 sm:py-16 flex items-center">
-            <div className="max-w-xl">
-              <Reveal>
-                <p className="text-[10px] sm:text-xs font-black tracking-[0.18em] uppercase text-[#4dd0e8] mb-2">{content.video.title}</p>
-                <h3 className="text-base sm:text-2xl font-black text-white mb-3">{content.video.subtitle}</h3>
-                <p className="text-gray-200 text-xs sm:text-sm leading-relaxed">{content.video.description}</p>
-              </Reveal>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <SectionDivider />
-
-      {/* Pro Video */}
-      {content.proVideo && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
-          <Reveal>
-            <h3 className="text-xl sm:text-2xl font-black text-gray-900 text-center mb-10">{content.proVideo.title}</h3>
-          </Reveal>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {content.proVideo.items.map((item, i) => {
-              const title = item.label.split(".")[0];
-              const desc = item.label.split(".").slice(1).join(".").trim();
-              return (
-                <Reveal key={i} delay={i * 0.05}>
-                  <div className="relative rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all" style={{ aspectRatio: "16/10" }}>
-                    <Image src={item.image} alt={title} fill className="object-cover" sizes="(max-width:640px) 100vw, 50vw" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                    <div className="absolute bottom-0 right-0 left-0 p-4 sm:p-6">
-                      <ExpandableText title={title} desc={desc} />
-                    </div>
-                  </div>
-                </Reveal>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </section>
   );
 }
@@ -394,42 +295,18 @@ function PerformanceSection({ section }: { section: ProductSection }) {
   return (
     <section className="w-full bg-white" dir="rtl">
       {media && (
-        <div className="relative w-full" style={{ aspectRatio: "16/9", minHeight: "280px" }}>
-          <div className="absolute inset-0">
-            <Image src={media.url} alt="" fill className="object-cover" sizes="100vw" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20" />
-          </div>
-          <div className="absolute inset-0 max-w-6xl mx-auto px-4 sm:px-10 py-8 sm:py-16 flex items-end">
+        <div className="relative w-full" style={{ minHeight: "220px", aspectRatio: "16/9" }}>
+          <Image src={media.url} alt="" fill className="object-cover" sizes="100vw" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/10" />
+          <div className="absolute inset-0 flex flex-col justify-end px-4 sm:px-10 py-5 sm:py-12 max-w-6xl mx-auto">
             <Reveal>
-              <p className="text-[10px] sm:text-xs font-black tracking-[0.18em] uppercase text-[#4dd0e8] mb-1">{section.title}</p>
-              <h2 className="text-base sm:text-3xl font-black text-white mb-2">{section.subtitle}</h2>
-              <p className="text-gray-200 text-xs sm:text-sm leading-relaxed max-w-2xl">{content.description}</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-[#4dd0e8] mb-1">{section.title}</p>
+              <h2 className="text-base sm:text-2xl font-black text-white mb-2">{section.subtitle}</h2>
+              <ExpandableText title="" desc={content.description} />
             </Reveal>
           </div>
         </div>
       )}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10">
-        <Reveal delay={0.05}>
-          <div className="overflow-hidden rounded-2xl border border-gray-100">
-            <table className="w-full text-right">
-              <tbody>
-                {content.chips.map((chip, i) => (
-                  <tr key={chip.name} className={`border-b border-gray-100 last:border-0 ${
-                    i % 2 === 0 ? "bg-white" : "bg-[#f8fafc]"
-                  }`}>
-                    <td className="px-4 sm:px-6 py-4 w-2/5 sm:w-1/3 align-top">
-                      <span className="text-xs sm:text-sm font-black text-[#1F7A8C] leading-snug">{chip.name}</span>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 align-top">
-                      <span className="text-xs sm:text-sm text-gray-700 leading-relaxed">{chip.description}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Reveal>
-      </div>
     </section>
   );
 }
@@ -445,47 +322,22 @@ function BatterySection({ section }: { section: ProductSection }) {
   const media = section.media?.[0];
 
   return (
-    <section className="w-full bg-[#f8fafc]" dir="rtl">
+    <section className="w-full bg-gradient-to-b from-gray-50/40 via-white to-gray-50/40" dir="rtl">
       {media && (
-        <div className="relative w-full" style={{ aspectRatio: "16/9", minHeight: "280px" }}>
-          <div className="absolute inset-0">
-            <Image src={media.url} alt="" fill className="object-cover" sizes="100vw" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/20" />
-          </div>
-          <div className="absolute inset-0 max-w-6xl mx-auto px-4 sm:px-10 py-8 sm:py-16 flex flex-col items-center justify-end text-center">
+        <div className="relative w-full" style={{ minHeight: "200px", aspectRatio: "16/9" }}>
+          <Image src={media.url} alt="" fill className="object-cover" sizes="100vw" priority />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/10" />
+          <div className="absolute inset-0 flex flex-col justify-end px-4 sm:px-10 py-5 sm:py-10 max-w-6xl mx-auto">
             <Reveal>
-              <p className="text-[10px] sm:text-xs font-black tracking-[0.18em] uppercase text-[#4dd0e8] mb-1">{section.title}</p>
-              <h2 className="text-base sm:text-3xl font-black text-white mb-2">{section.subtitle}</h2>
-              <p className="text-gray-200 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">{content.description}</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-[#4dd0e8] mb-1">{section.title}</p>
+              <h2 className="text-sm sm:text-2xl font-black text-white mb-2 leading-tight">{section.subtitle}</h2>
+              <ExpandableText title="" desc={content.description} />
             </Reveal>
           </div>
         </div>
       )}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10">
-        <Reveal delay={0.05}>
-          <div className="overflow-hidden rounded-2xl border border-gray-100">
-            <table className="w-full text-right">
-              <tbody>
-                {content.stats.map((s, i) => (
-                  <tr key={i} className={`border-b border-gray-100 last:border-0 ${
-                    i % 2 === 0 ? "bg-white" : "bg-[#f8fafc]"
-                  }`}>
-                    <td className="px-4 sm:px-6 py-4 w-2/5 sm:w-1/3 align-middle">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl sm:text-2xl font-black text-[#1F7A8C]">{s.value}</span>
-                        <span className="text-xs font-bold text-gray-500">{s.unit}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 align-middle">
-                      <span className="text-xs sm:text-sm text-gray-700 leading-relaxed">{s.label}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Reveal>
-      </div>
+
+     
     </section>
   );
 }

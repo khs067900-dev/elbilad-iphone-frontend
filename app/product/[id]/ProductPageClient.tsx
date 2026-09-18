@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IoArrowForward, IoShareSocial, IoHomeOutline, IoCartOutline, IoCheckmarkDoneCircle } from "react-icons/io5";
 import type { Product } from "../../components/products/types";
 import { useCartStore } from "../../store/cartStore";
-import { isIPhone18PreOrder } from "../../lib/usePreOrderAvailability";
-import PreOrderModal from "../../components/pre-order/PreOrderModal";
+
 import ProductImages from "./components/ProductImages";
 import ProductInfo from "./components/ProductInfo";
 import ProductDetails from "./components/ProductDetails";
@@ -22,12 +21,14 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
   const [variantImages, setVariantImages] = useState<string[] | null>(null);
   const [mobileLoading, setMobileLoading] = useState(false);
   const [mobilePopup, setMobilePopup] = useState(false);
-  const [preOrderOpen, setPreOrderOpen] = useState(false);
   const [displayPrice, setDisplayPrice] = useState<number | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [currentProductToAdd, setCurrentProductToAdd] = useState<Product | null>(null);
   const addItem = useCartStore((s) => s.addItem);
   
   const mobilePrice = displayPrice ?? (product?.salePrice ?? product?.originalPrice ?? 0);
-  const isPreOrder = product ? isIPhone18PreOrder(product.name) : false;
+  const mobileName = displayName ?? product?.name ?? "";
+  const isIPhone18 = ["ابل ايفون 18", "ايفون 18 برو ماكس", "ايفون 18 برو", "ابل ايفون 18 برو", "ايفون 18 دو"].includes(product?.category ?? "");
 
   if (!product)
     return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-400 text-lg">المنتج غير موجود</p></div>;
@@ -36,7 +37,8 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
     setMobileLoading(true);
     setTimeout(() => {
       setMobileLoading(false);
-      addItem(product);
+      // استخدام المنتج المحدث من ProductInfo أو المنتج الأصلي
+      addItem(currentProductToAdd || product);
       setAddedToCart(true);
       setMobilePopup(true);
       setTimeout(() => setMobilePopup(false), 3000);
@@ -77,7 +79,7 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
                   <span>الرئيسية</span>
                 </Link>
                 <span className="breadcrumb-sep flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{product.name}</span>
+                <span className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{mobileName}</span>
               </nav>
             </div>
             {/* Share */}
@@ -103,19 +105,23 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
               <ProductInfo 
                 product={product} 
                 addedToCart={addedToCart} 
-                onAddToCart={() => { addItem(product); setAddedToCart(true); }}
-                isPreOrder={isPreOrder}
-                onPreOrder={() => setPreOrderOpen(true)}
-                onVariantChange={(imgs) => setVariantImages(imgs)}
-                onPriceChange={(p) => setDisplayPrice(p)}
-                isIPhone18={product.category === "ابل ايفون 18"}
+                onAddToCart={(updatedProduct) => { 
+                  setCurrentProductToAdd(updatedProduct);
+                  addItem(updatedProduct); 
+                  setAddedToCart(true); 
+                }}
+                onVariantChange={useCallback((imgs: string[]) => setVariantImages(imgs), [])}
+                onPriceChange={useCallback((p: number) => setDisplayPrice(p), [])}
+                onNameChange={useCallback((name: string) => setDisplayName(name), [])}
+                onProductChange={useCallback((updatedProduct: Product) => setCurrentProductToAdd(updatedProduct), [])}
+                isIPhone18={isIPhone18}
               />
             </div>
           </div>
 
-          <ProductDetails installment={product.installment} description={product.description} specs={product.specs} isIPhone18={product.category === "ابل ايفون 18"} />
+          <ProductDetails installment={product.installment} description={product.description} specs={product.specs} specGroups={product.specGroups} isIPhone18={isIPhone18} />
 
-          {product.category === "ابل ايفون 18" && (
+          {isIPhone18 && (
             <IPhone18Sections
               sections={product.sections}
               gallery={product.gallery}
@@ -138,17 +144,10 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
           <div className="bg-white/95 backdrop-blur-xl border-t border-gray-200 px-4 py-3 safe-bottom">
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-gray-500 truncate">{product.name}</p>
+                <p className="text-[10px] text-gray-500 truncate">{mobileName}</p>
                 <p className="text-base font-black text-red-600">{mobilePrice.toLocaleString("en-US")} <span className="text-xs font-bold">ر.س</span></p>
               </div>
-              {isPreOrder ? (
-                <button
-                  onClick={() => setPreOrderOpen(true)}
-                  className="bg-gradient-to-l from-[#1a6b7d] to-[#155e6f] text-white font-bold text-sm px-7 py-3 rounded-xl shadow-lg shadow-[#1a6b7d]/30 active:scale-95 transition-transform flex items-center gap-2"
-                >
-                  احجز الآن
-                </button>
-              ) : !addedToCart ? (
+              {!addedToCart ? (
                 <button
                   onClick={handleMobileAdd}
                   disabled={mobileLoading}
@@ -178,20 +177,7 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
         </div>
       </main>
       
-      {/* Pre-Order Modal */}
-      {isPreOrder && product && (
-        <PreOrderModal
-          open={preOrderOpen}
-          onClose={() => setPreOrderOpen(false)}
-          product={{
-            _id: product._id,
-            name: product.name,
-            image: product.image,
-            variants: product.variants,
-            price: product.originalPrice ?? product.price ?? 0,
-          }}
-        />
-      )}
+
     </>
   );
 }
