@@ -105,7 +105,7 @@ export default function IPhone18Popup() {
             </p> 
  
             <p style={{ color:"rgba(255,255,255,0.55)", fontSize:"13px", margin:"0 0 20px", lineHeight:1.6 }}> 
-              آيفون 18 وصل للسعودية. اطلبه الحين وخله يوصلك لين عندك. 
+              آيفون 18 وصل للبلاد. اطلبه الحين وخله يوصلك لين عندك. 
             </p> 
  
             {/* CTA */} 
