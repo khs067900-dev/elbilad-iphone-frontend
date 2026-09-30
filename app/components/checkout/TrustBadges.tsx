@@ -245,7 +245,7 @@ export function ApplePayPanel({
           type="button"
           onClick={onSubmit}
           disabled={loading}
-          className="flex-[2] py-4 bg-black hover:bg-neutral-800 active:scale-[0.98] text-white rounded-xl shadow-sm shadow-black/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          className="flex-[1.5] py-3 bg-black hover:bg-neutral-800 active:scale-[0.98] text-white rounded-xl shadow-sm shadow-black/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading ? (
             <span className="text-sm font-semibold tracking-wide">جاري التحويل...</span>
