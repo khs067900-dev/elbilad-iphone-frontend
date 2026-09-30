@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -247,17 +247,35 @@ export function ApplePayPanel({
           type="button"
           onClick={onSubmit}
           disabled={loading}
-          className="flex-[2] py-4 bg-black hover:bg-neutral-900 active:scale-[0.98] text-white rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-black/15 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex-[2] py-4 bg-black hover:bg-neutral-800 active:scale-[0.98] text-white rounded-xl shadow-sm shadow-black/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading ? (
-            <span>جاري التحويل...</span>
+            <span className="text-sm font-semibold tracking-wide">جاري التحويل...</span>
           ) : (
-            <>
-              <span className="text-lg leading-none font-sans"></span>
-              <span>Pay الدفع عبر Apple Pay</span>
-            </>
+            <span className="flex items-center justify-center gap-[6px]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 814 1000"
+                className="w-[17px] h-[17px] fill-white flex-shrink-0 -mt-0.5"
+              >
+                <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 135.4-317.5 269-317.5 70.7 0 129.5 46.4 173.1 46.4 42.8 0 109.8-49 192.1-49 31 0 108.2 2.6 168.5 80.6z" />
+                <path d="M554.5 88c33.5-44.8 57.8-107 57.8-169.2 0-8.7-.6-17.4-2-24.8-54.3 2-118.7 36.2-157.8 85.5-30.4 37.7-59.4 99.6-59.4 162.6 0 9.4 1.3 18.7 2 21.8 3.2.6 8.7 1.3 14.2 1.3 48.4 0 109.1-32.2 145.2-77.2z" />
+              </svg>
+              <span
+                style={{
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+                  fontSize: 16,
+                  fontWeight: 500,
+                  letterSpacing: "0.01em",
+                  lineHeight: 1,
+                }}
+              >
+                Pay
+              </span>
+            </span>
           )}
         </button>
+
       </div>
     </div>
   );
