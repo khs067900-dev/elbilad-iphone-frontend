@@ -10,7 +10,7 @@ import MobileMenu from "./MobileMenu";
 import { useCartStore } from "../../store/cartStore";
 import { useCompanyStore } from "../../store/companyStore";
 
-export default function Navbar() {
+export default function Navbar({ initialLogo }: { initialLogo?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +20,8 @@ export default function Navbar() {
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
-  const { logo, fetchCompany } = useCompanyStore();
+  const { logo: storeLogo, fetchCompany } = useCompanyStore();
+  const logo = initialLogo || storeLogo;
 
   const API_IMG = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const resolveImg = (src: string) => src.startsWith("http") ? src : `${API_IMG}${src.startsWith("/") ? src : "/" + src}`;
@@ -86,18 +87,15 @@ export default function Navbar() {
             >
               {mobileOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
-            <Link href="/" className="shrink-0" aria-label="الصفحة الرئيسية - مؤسسة تبارك التقنية الذكية">
+            <Link href="/" className="shrink-0" aria-label="الصفحة الرئيسية - مؤسسة البلاد الحديثة للإلكترونيات">
               {logo && (
                 <Image
                   src={logo}
-                  unoptimized
-                  alt="مؤسسة تبارك التقنية الذكية"
-                  width={0}
-                  height={0}
-                  sizes="100vw"
-                  className="h-14 sm:h-14 lg:h-20 w-auto"
+                  alt="مؤسسة البلاد الحديثة للإلكترونيات"
+                  width={160}
+                  height={60}
+                  className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
                   priority
-                  loading="eager"
                 />
               )}
             </Link>

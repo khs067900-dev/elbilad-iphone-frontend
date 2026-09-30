@@ -1,20 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FaWhatsapp, FaMobileAlt, FaEnvelope } from "react-icons/fa";
-
-const API = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-async function getCompany() {
-  try {
-    const r = await fetch(`${API}/api/admin/company`, { next: { revalidate: 3600, tags: ["company"] } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
+import { getCachedCompany } from "../lib/products-cache";
 
 export default async function Footer() {
-  const c = await getCompany();
+  const c = await getCachedCompany();
 
   function ensureAbsolute(url: string) {
     if (!url) return "";
@@ -151,8 +141,8 @@ export default async function Footer() {
 
       <div className="border-t border-[#1F7A8C] max-w-6xl mx-auto px-4 py-4 text-xs text-[#F5F7F8]">
         <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
-          <span className="text-center">الحقوق محفوظة مؤسسة البلاد الثايته لتقنية المعلومات  © 2026</span>
-          <Image src="/فيزا ماستر مدى.webp" alt="بطاقات الدفع" width={120} height={40} className="object-contain" style={{ width: "auto" }} />
+          <span className="text-center">الحقوق محفوظة مؤسسة البلاد الحديثة للإلكترونيات  © 2026</span>
+          <Image src="/payment-methods.webp" alt="بطاقات الدفع" width={120} height={40} className="object-contain" style={{ width: "auto" }} />
         </div>
       </div>
     </footer>

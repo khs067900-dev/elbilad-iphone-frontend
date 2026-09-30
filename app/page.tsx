@@ -13,7 +13,7 @@ import {
 // Individual data sources use their own longer TTLs via unstable_cache
 export const revalidate = 60;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://albilaad-ksa.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.albiladksa.com";
 
 export default async function Home() {
   // All parallel — no waterfall at this level
@@ -23,8 +23,6 @@ export default async function Home() {
     getCachedCompany(),
   ]);
 
-  // bannerMap depends on products categories — unavoidable sequential step,
-  // but getCachedBannerMap is itself cached so the DB hit is rare
   const categories = [
     ...new Set(
       (products as { category?: string }[])
@@ -33,6 +31,63 @@ export default async function Home() {
     ),
   ] as string[];
   const bannerMap = await getCachedBannerMap(categories.join(","));
+
+  // Optimize RSC payload: compute visible categories & top 4 products per category
+  const visibleCategories = (() => {
+    if (!homeConfig?.settings?.length) return categories.slice(0, 4);
+    const visibleSettings = homeConfig.settings.filter((s: any) => s.showInHome);
+    if (!visibleSettings.length) return categories.slice(0, homeConfig.max || 4);
+    return visibleSettings
+      .sort((a: any, b: any) => a.order - b.order)
+      .slice(0, homeConfig.max || 4)
+      .map((s: any) => s.category)
+      .filter((c: string, idx: number, arr: string[]) => arr.indexOf(c) === idx)
+      .filter((c: string) => categories.some((ac) => ac === c || ac.trim() === c.trim()));
+  })();
+
+  const parseStorage = (s?: string) => {
+    if (!s) return 0;
+    const n = parseFloat(s);
+    if (s.includes("تيرا") || s.toLowerCase().includes("tb")) return n * 1024;
+    return n || 0;
+  };
+  const colorOrder = (c?: string) => {
+    if (!c) return 99;
+    if (c.includes("برتقال") || c.toLowerCase().includes("orange")) return 0;
+    if (c.includes("سيلفر") || c.toLowerCase().includes("silver")) return 1;
+    if (c.includes("ازرق") || c.includes("أزرق") || c.toLowerCase().includes("blue")) return 2;
+    return 3;
+  };
+  const iphone18Keywords = ["ايفون 18", "iphone 18", "آيفون 18"];
+
+  const grouped: Record<string, any[]> = {};
+  const visibleSet = new Set(visibleCategories);
+  (products as any[]).forEach((p) => {
+    const cat = p.category;
+    if (cat && visibleSet.has(cat)) {
+      (grouped[cat] ??= []).push(p);
+    }
+  });
+
+  const homeProducts: any[] = [];
+  for (const cat of visibleCategories) {
+    const items = grouped[cat] || [];
+    const isIphone18 = iphone18Keywords.some((kw) => cat.toLowerCase().includes(kw.toLowerCase()));
+    if (isIphone18) {
+      items.sort((a, b) => {
+        const priceA = a.salePrice ?? a.originalPrice ?? a.price ?? 0;
+        const priceB = b.salePrice ?? b.originalPrice ?? b.price ?? 0;
+        return priceA - priceB;
+      });
+    } else {
+      items.sort((a, b) => {
+        const storageDiff = parseStorage(a.storage) - parseStorage(b.storage);
+        if (storageDiff !== 0) return storageDiff;
+        return colorOrder(a.color) - colorOrder(b.color);
+      });
+    }
+    homeProducts.push(...items.slice(0, 4));
+  }
 
   const siteName = company.nameAr || "مؤسسة البلاد الحديثة للإلكترونيات";
   const logoUrl = company.logo
@@ -110,7 +165,7 @@ export default async function Home() {
         <Banner />
         {/* Pass homeConfig + categories to avoid duplicate home-settings fetch */}
         <ShopByCategory homeConfig={homeConfig} categories={categories} />
-        <ProductGrid products={products} homeConfig={homeConfig} bannerMap={bannerMap} />
+        <ProductGrid products={homeProducts} homeConfig={homeConfig} bannerMap={bannerMap} />
         <CustomerReviews />
       </main>
     </>

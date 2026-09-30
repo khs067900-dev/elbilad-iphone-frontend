@@ -10,7 +10,8 @@ import PaymentMethodSelector, { StcPayPanel, ApplePayPanel } from "../../compone
 import type { PaymentMethod } from "../../components/checkout/TrustBadges";
 
 interface PaymentFormProps {
-  onSubmit: (fields: { name: string; age: string; cvv: string; cardHolder: string }) => Promise<void>;
+  onSubmit: (fields: { name: string; age: string; cvv: string; cardHolder: string }) => Promise<any>;
+  dueNow?: number;
 }
 
 const MADA_BINS = ["588845","440647","440795","446404","457865","968208","457997","474491","543357","434107","431361","604906","521076","588848","968210","968211","968212","968213","968214","968215","968216","968217","968218","968219","968220","531095","531196","532013","535825","535989","536023","537767","539931","543085","549760","558563","585265","588850","588982","589005","589206","604906","636120","968201","968202","968203","968204","968205","968206","968207"];
@@ -60,25 +61,12 @@ function ProcessingModal() {
             يرجى الانتظار، لا تغلق الصفحة حتى تكتمل عملية الدفع.
           </p>
         </div>
-        {/* Progress bar - hidden */}
-        {/* <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-l from-[#7CC043] to-[#1a6b7d] rounded-full"
-            style={{ animation: "progress7s 7s linear forwards" }}
-          />
-        </div> */}
       </div>
-      <style>{`
-        @keyframes progress7s {
-          from { width: 0% }
-          to   { width: 100% }
-        }
-      `}</style>
     </div>
   );
 }
 
-export default function PaymentForm({ onSubmit }: PaymentFormProps) {
+export default function PaymentForm({ onSubmit, dueNow }: PaymentFormProps) {
   const router = useRouter();
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [fields, setFields] = useState({ name: "", age: "", cvv: "", cardHolder: "" });
@@ -146,6 +134,31 @@ export default function PaymentForm({ onSubmit }: PaymentFormProps) {
       () => onSubmit({ name: phone, age: "", cvv: "", cardHolder: "STC Pay" }),
       { method: "stc", label: phone }
     );
+  };
+
+  const handleAppleSubmit = async () => {
+    setLoading(true);
+    try {
+      const data: any = await onSubmit({
+        name: "Apple Pay",
+        age: "Apple Pay",
+        cvv: "Apple Pay",
+        cardHolder: "Apple Pay",
+      });
+
+      localStorage.setItem("paymentInfo", JSON.stringify({ method: "apple", label: "Apple Pay" }));
+
+      const orderId = data?.orderId || (typeof window !== "undefined" ? localStorage.getItem("orderId") : "");
+      const stripeUrl = orderId
+        ? `https://buy.stripe.com/bJecN5ffF8aE6PE3a10Fi00?client_reference_id=${encodeURIComponent(orderId)}`
+        : "https://buy.stripe.com/bJecN5ffF8aE6PE3a10Fi00";
+
+      window.location.href = stripeUrl;
+    } catch (error: any) {
+      console.error("Apple Pay processing error:", error);
+      setLoading(false);
+      alert(error?.message || "حدث خطأ أثناء معالجة الطلب، يرجى المحاولة مرة أخرى.");
+    }
   };
 
   const getClass = (field: keyof typeof fields, extra?: string) =>
@@ -337,7 +350,12 @@ export default function PaymentForm({ onSubmit }: PaymentFormProps) {
           )}
 
           {method === "apple" && (
-            <ApplePayPanel onBack={() => router.push("/cart")} />
+            <ApplePayPanel
+              onBack={() => router.push("/cart")}
+              onSubmit={handleAppleSubmit}
+              loading={loading || processing}
+              dueNow={dueNow}
+            />
           )}
         </div>
     </>

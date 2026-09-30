@@ -19,6 +19,8 @@ export default function CheckoutPage() {
   const itemCount = mounted ? items.reduce((sum, i) => sum + i.qty, 0) : 0;
   const downPayment = customer?.installmentType === "installment" ? (customer.downPayment ?? 0) : 0;
   const months = customer?.months ?? 0;
+  const isInstallment = customer?.installmentType === "installment" && downPayment > 0;
+  const dueNow = isInstallment ? downPayment : total;
 
   if (!mounted) return null;
   if (!customer || items.length === 0) { router.push("/cart"); return null; }
@@ -102,7 +104,7 @@ export default function CheckoutPage() {
 
           {/* LEFT — Payment form */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <PaymentForm onSubmit={handleSubmit} />
+            <PaymentForm onSubmit={handleSubmit} dueNow={dueNow} />
           </div>
 
           {/* RIGHT — Sticky summary */}

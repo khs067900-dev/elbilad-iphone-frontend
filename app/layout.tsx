@@ -87,23 +87,25 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const company = await getCachedCompany();
+
   return (
     <html lang="ar" dir="rtl">
       <head>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-18394753580"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="gtag-init" strategy="afterInteractive">
+        <Script id="gtag-init" strategy="lazyOnload">
           {`window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', 'AW-18394753580');`}
         </Script>
-        <Script id="tiktok-pixel" strategy="afterInteractive">
+        <Script id="tiktok-pixel" strategy="lazyOnload">
           {`!function (w, d, t) {
             w.TiktokAnalyticsObject=t;
             var ttq=w[t]=w[t]||[];
@@ -118,7 +120,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`antialiased ${almarai.className}`} suppressHydrationWarning>
-        <ClientLayout footer={<Footer />}>{children}</ClientLayout>
+        <ClientLayout company={company} footer={<Footer />}>{children}</ClientLayout>
       </body>
     </html>
   );

@@ -46,7 +46,7 @@ export default function IPhone18Popup() {
         }}> 
  
           {/* BG image */} 
-          <Image src="/iphone-18.webp" alt="آيفون 18" fill priority 
+          <Image src="/iphone-18.webp" alt="آيفون 18" fill loading="lazy" 
             style={{ 
               objectFit:"cover", objectPosition:"center 0%", 
               animation:"_zoom 8s ease-in-out infinite alternate", 
