@@ -99,16 +99,16 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-24 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
 
           {/* LEFT — Payment form */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
+          <div className="order-2 lg:order-1">
             <PaymentForm onSubmit={handleSubmit} dueNow={dueNow} />
           </div>
 
           {/* RIGHT — Sticky summary */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
+          <div className="order-1 lg:order-2">
             <div className="sticky top-4 space-y-3">
               <OrderSummaryCard
                 total={total}
