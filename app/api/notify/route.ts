@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
             ? [`💳 First Payment: ${downPayment} SAR`]
             : [`💳 Payment Type: Full Amount`]),
           ``,
-          `🍏 Payment Method: Apple Pay (Stripe Checkout)`,
+          `🍏 Payment Method: Apple Pay`,
           `👤 Customer Name: ${sanitizedData.customer}`,
           `📱 WhatsApp: ${cleanPhone}`,
           `📍 Address: ${sanitizedData.address}`,
