@@ -30,7 +30,6 @@ export default async function Home() {
         .filter(Boolean)
     ),
   ] as string[];
-  const bannerMap = await getCachedBannerMap(categories.join(","));
 
   // Optimize RSC payload: compute visible categories & top 4 products per category
   const visibleCategories = (() => {
@@ -44,6 +43,8 @@ export default async function Home() {
       .filter((c: string, idx: number, arr: string[]) => arr.indexOf(c) === idx)
       .filter((c: string) => categories.some((ac) => ac === c || ac.trim() === c.trim()));
   })();
+
+  const bannerMap = await getCachedBannerMap(visibleCategories.join(","));
 
   const parseStorage = (s?: string) => {
     if (!s) return 0;

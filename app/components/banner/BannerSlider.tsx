@@ -9,10 +9,8 @@ const SWIPE_THRESHOLD = 50;
 export default function BannerSlider({ images }: { images: string[] }) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [progress, setProgress] = useState(0);
   const touchStart = useRef(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const progressRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const total = images.length;
 
@@ -21,41 +19,36 @@ export default function BannerSlider({ images }: { images: string[] }) {
       const next = (i + total) % total;
       setDirection(dir ?? (next > current ? 1 : -1));
       setCurrent(next);
-      setProgress(0);
     },
     [total, current]
   );
 
-  // Auto-play + progress
+  // Auto-play timer (pure timeout without continuous 30ms state re-renders)
   useEffect(() => {
-    setProgress(0);
-    const step = 30;
-    progressRef.current = setInterval(() => {
-      setProgress((p) => Math.min(p + step / AUTO_PLAY_MS, 1));
-    }, step);
-    intervalRef.current = setTimeout(() => {
+    if (total <= 1) return;
+    timeoutRef.current = setTimeout(() => {
       setDirection(1);
       setCurrent((c) => (c + 1) % total);
-      setProgress(0);
     }, AUTO_PLAY_MS);
+
     return () => {
-      if (intervalRef.current) clearTimeout(intervalRef.current);
-      if (progressRef.current) clearInterval(progressRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [current, total]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStart.current = e.touches[0].clientX;
   };
+
   const onTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStart.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > SWIPE_THRESHOLD) goTo(current + (diff > 0 ? 1 : -1), diff > 0 ? 1 : -1);
   };
 
   const variants = {
-    enter: (d: number) => ({ opacity: 0, scale: 1.08, x: d > 0 ? 60 : -60 }),
+    enter: (d: number) => ({ opacity: 0, scale: 1.05, x: d > 0 ? 50 : -50 }),
     center: { opacity: 1, scale: 1, x: 0 },
-    exit: (d: number) => ({ opacity: 0, scale: 0.95, x: d > 0 ? -60 : 60 }),
+    exit: (d: number) => ({ opacity: 0, scale: 0.96, x: d > 0 ? -50 : 50 }),
   };
 
   return (
@@ -77,7 +70,7 @@ export default function BannerSlider({ images }: { images: string[] }) {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
               className="absolute inset-0"
             >
               <Image
@@ -86,7 +79,7 @@ export default function BannerSlider({ images }: { images: string[] }) {
                 fill
                 className="object-cover"
                 priority={current === 0}
-                sizes="100vw"
+                sizes="(max-width: 768px) 100vw, 1200px"
               />
             </motion.div>
           </AnimatePresence>
@@ -100,10 +93,10 @@ export default function BannerSlider({ images }: { images: string[] }) {
                   onClick={() => goTo(i)}
                   aria-label={`الانتقال للشريحة ${i + 1}`}
                   aria-current={i === current ? "true" : undefined}
-                  className="relative"
+                  className="relative overflow-hidden cursor-pointer"
                 >
                   <div
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                    className={`h-1.5 rounded-full transition-all duration-300 relative overflow-hidden ${
                       i === current
                         ? "w-10 sm:w-14 bg-white/40"
                         : "w-3 sm:w-4 bg-white/30 hover:bg-white/50"
@@ -111,9 +104,11 @@ export default function BannerSlider({ images }: { images: string[] }) {
                   >
                     {i === current && (
                       <motion.div
+                        key={current}
                         className="absolute inset-y-0 right-0 rounded-full bg-gradient-to-l from-[#6DBE00] to-[#4fa800]"
-                        style={{ width: `${progress * 100}%` }}
-                        transition={{ duration: 0.03, ease: "linear" }}
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: AUTO_PLAY_MS / 1000, ease: "linear" }}
                       />
                     )}
                   </div>
